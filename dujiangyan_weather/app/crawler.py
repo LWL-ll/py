@@ -3,11 +3,12 @@
 用于抓取都江堰历史天气数据
 
 功能：自动计算当前日期往前推12个月，逐月爬取都江堰每日天气
-输出：list[dict]，字段：date, max_temp, min_temp, weather, wind
+输出：list[dict]，字段：date, max_temp, min_temp, weather, wind, humidity
 """
 
 import requests
 from bs4 import BeautifulSoup
+import re
 import time
 import logging
 from datetime import datetime
@@ -26,11 +27,16 @@ HEADERS = {
     'User-Agent': (
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
         'AppleWebKit/537.36 (KHTML, like Gecko) '
-        'Chrome/115.0.0.0 Safari/537.36'
-    )
+        'Chrome/131.0.0.0 Safari/537.36'
+    ),
+    'Accept': 'application/json, text/javascript, */*; q=0.01',
+    'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    'X-Requested-With': 'XMLHttpRequest',
 }
-AREA_ID = 56290  # 都江堰
+AREA_ID = 60407  # 都江堰（2345天气网城市编码）
 BASE_URL = 'https://tianqi.2345.com/Pc/GetHistory'
+# Referer 需要根据当前 AREA_ID 动态设置
+REFERER_URL = f'https://tianqi.2345.com/wea_history/{AREA_ID}.htm'
 
 
 def fetch_month(year: int, month: int) -> list:
@@ -38,12 +44,12 @@ def fetch_month(year: int, month: int) -> list:
     抓取指定年月的天气数据。
 
     反爬策略：
-        1. 请求头携带 User-Agent 伪装浏览器
+        1. 请求头携带完整浏览器标识（User-Agent + Referer + X-Requested-With）
         2. try/except 包裹，超时/断网重试 1 次
         3. 失败记录日志并跳过该月
 
     返回：list[dict]
-        字段：date, max_temp, min_temp, weather, wind
+        字段：date, max_temp, min_temp, weather, wind, humidity
     """
     url = (
         f'{BASE_URL}?'
@@ -52,9 +58,12 @@ def fetch_month(year: int, month: int) -> list:
     )
     max_attempts = 2  # 首次请求 + 重试 1 次
 
+    # 构造包含 Referer 的请求头
+    req_headers = {**HEADERS, 'Referer': REFERER_URL}
+
     for attempt in range(max_attempts):
         try:
-            resp = requests.get(url, headers=HEADERS, timeout=30)
+            resp = requests.get(url, headers=req_headers, timeout=30)
             resp.raise_for_status()
             payload = resp.json()
             html = payload.get('data', '')
@@ -67,11 +76,20 @@ def fetch_month(year: int, month: int) -> list:
                 if len(tds) < 5:
                     continue
 
+                # 数据格式：日期 | 最高温 | 最低温 | 天气 | 风向风力 | 湿度
                 date_str = tds[0].get_text(strip=True)
-                max_temp = tds[1].get_text(strip=True).replace('℃', '')
-                min_temp = tds[2].get_text(strip=True).replace('℃', '')
+                # 提取纯数字（温度值可能是 "25°" 或 "25℃" 格式）
+                max_temp = re.sub(r'[^\d.-]', '', tds[1].get_text(strip=True))
+                min_temp = re.sub(r'[^\d.-]', '', tds[2].get_text(strip=True))
                 weather = tds[3].get_text(strip=True)
                 wind = tds[4].get_text(strip=True)
+
+                # 湿度是第 6 列（可能是 "37 优" 或 "-" 格式）
+                humidity = ''
+                if len(tds) >= 6:
+                    humidity_text = tds[5].get_text(strip=True)
+                    if humidity_text != '-':
+                        humidity = re.sub(r'[^\d.-]', '', humidity_text)
 
                 results.append({
                     'date': date_str,
@@ -79,6 +97,7 @@ def fetch_month(year: int, month: int) -> list:
                     'min_temp': min_temp,
                     'weather': weather,
                     'wind': wind,
+                    'humidity': humidity,
                 })
             return results
 
@@ -181,6 +200,10 @@ def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
                 wind_direction = wind_parts[0]
                 wind_level = wind_parts[1] if len(wind_parts) > 1 else ''
 
+                # 湿度（字符串，可能为空或 '-'）
+                humidity_str = item.get('humidity', '')
+                humidity = float(humidity_str) if humidity_str and humidity_str != '-' else None
+
                 WeatherData.objects.update_or_create(
                     date=date_obj,
                     defaults={
@@ -189,6 +212,7 @@ def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
                         'weather_desc': item.get('weather', ''),
                         'wind_direction': wind_direction,
                         'wind_level': wind_level,
+                        'humidity': humidity,
                     }
                 )
                 saved_count += 1
