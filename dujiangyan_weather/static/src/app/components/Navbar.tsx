@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { CloudDownload, Loader2 } from 'lucide-react';
 import { useMonth } from '../context/MonthContext';
+import { apiFetch } from '../utils/api';
 
 export default function Navbar() {
   const { selectedMonth, setSelectedMonth, availableMonths, loading, triggerRefresh } = useMonth();
@@ -13,7 +14,7 @@ export default function Navbar() {
     setCrawlLoading(true);
     setStatusMsg('数据爬取中...');
     try {
-      const res = await fetch('/api/weather/crawl/', { method: 'POST' });
+      const res = await apiFetch('/api/weather/crawl/', { method: 'POST' });
       const json = await res.json();
       if (json.code === 0) {
         setStatusMsg(`爬取完成，保存 ${json.data?.saved_count ?? '?'} 条`);
@@ -33,7 +34,7 @@ export default function Navbar() {
     setAnalyzeLoading(true);
     setStatusMsg('分析中...');
     try {
-      const res = await fetch('/api/weather/analyze/', { method: 'POST' });
+      const res = await apiFetch('/api/weather/analyze/', { method: 'POST' });
       const json = await res.json();
       if (json.code === 0) {
         setStatusMsg('分析完成');

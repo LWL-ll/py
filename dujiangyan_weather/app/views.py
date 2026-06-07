@@ -3,7 +3,6 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.db.models import Avg, Max, Min, Count
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST, require_GET
 
 from .models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask
@@ -191,7 +190,6 @@ def api_available_months(request):
 
 # ==================== 一键爬虫 ====================
 
-@csrf_exempt
 @require_POST
 def api_crawl(request):
     """触发爬虫抓取近12个月数据"""
@@ -222,7 +220,6 @@ def api_crawl(request):
 
 # ==================== 一键分析 ====================
 
-@csrf_exempt
 @require_POST
 def api_analyze(request):
     """触发数据分析：生成月度统计、气候评分与穿衣建议"""
