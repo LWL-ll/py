@@ -12,6 +12,7 @@ import re
 import time
 import logging
 from datetime import datetime
+from django.utils import timezone as django_timezone
 
 from app.models import WeatherData, CrawlTask
 
@@ -122,7 +123,7 @@ def crawl_last_12_months() -> list:
 
     返回：拼接后的 list[dict]
     """
-    now = datetime.now()
+    now = django_timezone.now()
     months = []
 
     # 构造过去 12 个月（含当前月）
@@ -157,7 +158,7 @@ def crawl_last_12_months() -> list:
                 defaults={
                     'status': 'failed',
                     'error_message': '未获取到任何数据',
-                    'completed_at': datetime.now(),
+                    'completed_at': django_timezone.now(),
                 }
             )
         time.sleep(2)  # 反爬：每月请求间隔 2 秒
@@ -191,7 +192,9 @@ def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
     try:
         for item in raw_list:
             try:
-                date_obj = datetime.strptime(item['date'], '%Y-%m-%d').date()
+                # 日期格式为 "2025-06-01 周六"，截取前 10 位 "2025-06-01"
+                date_str = item['date'][:10] if len(item['date']) >= 10 else item['date']
+                date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
                 max_temp = float(item['max_temp']) if item['max_temp'] else None
                 min_temp = float(item['min_temp']) if item['min_temp'] else None
 
@@ -223,7 +226,7 @@ def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
         if task:
             task.status = 'success'
             task.records_count = saved_count
-            task.completed_at = datetime.now()
+            task.completed_at = django_timezone.now()
             task.save()
 
     except Exception as e:
@@ -231,7 +234,7 @@ def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
         if task:
             task.status = 'failed'
             task.error_message = str(e)
-            task.completed_at = datetime.now()
+            task.completed_at = django_timezone.now()
             task.save()
         raise
 
@@ -264,7 +267,7 @@ def crawl_range(start_year: int, start_month: int, end_year: int, end_month: int
                 defaults={
                     'status': 'failed',
                     'error_message': '未获取到任何数据',
-                    'completed_at': datetime.now(),
+                    'completed_at': django_timezone.now(),
                 }
             )
         time.sleep(2)

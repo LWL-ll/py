@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.db.models import Avg, Max, Min, Count
+from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_GET
 
 from .models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask
@@ -17,8 +18,9 @@ from .analyzer import (
 
 # ==================== SPA 入口 ====================
 
+@ensure_csrf_cookie
 def index(request):
-    """主页面 - 返回打包后的 React SPA"""
+    """主页面 - 返回打包后的 React SPA（同时设置 CSRF Cookie 供前端 POST 请求使用）"""
     index_path = settings.BASE_DIR / 'static' / 'dist' / 'index.html'
     try:
         with open(index_path, 'r', encoding='utf-8') as f:
