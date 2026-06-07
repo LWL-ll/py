@@ -2,8 +2,22 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # SPA 入口
     path('', views.index, name='index'),
+
+    # 核心数据 API
     path('api/weather/list/', views.api_weather_list, name='api_weather_list'),
     path('api/weather/monthly/', views.api_monthly_stats, name='api_monthly_stats'),
     path('api/weather/summary/', views.api_summary, name='api_summary'),
+
+    # 图表与分析 API（新增）
+    path('api/weather/distribution/', views.api_weather_distribution, name='api_weather_distribution'),
+    path('api/weather/climate-score/', views.api_climate_score, name='api_climate_score'),
+    path('api/weather/heatmap/', views.api_heatmap, name='api_heatmap'),
+    path('api/weather/advice/', views.api_clothing_advice, name='api_clothing_advice'),
+    path('api/weather/months/', views.api_available_months, name='api_available_months'),
+
+    # 操作 API（新增）
+    path('api/weather/crawl/', views.api_crawl, name='api_crawl'),
+    path('api/weather/analyze/', views.api_analyze, name='api_analyze'),
 ]
