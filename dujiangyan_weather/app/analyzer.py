@@ -6,8 +6,11 @@
 
 import pandas as pd
 import numpy as np
+import logging
 from django.db.models import Avg, Max, Min, Count, Q
 from app.models import WeatherData, MonthlyStats, ClothingAdvice
+
+logger = logging.getLogger(__name__)
 
 
 def generate_monthly_stats(year: int = None, month: int = None):
@@ -23,7 +26,7 @@ def generate_monthly_stats(year: int = None, month: int = None):
 
     df = pd.DataFrame(qs.values())
     if df.empty:
-        print("无数据可分析")
+        logger.warning("无数据可分析")
         return
 
     df['date'] = pd.to_datetime(df['date'])
@@ -72,7 +75,7 @@ def generate_monthly_stats(year: int = None, month: int = None):
         # 同步生成穿衣建议
         generate_clothing_advice(y, m)
 
-    print("月度统计与气候评分生成完成")
+    logger.info("月度统计与气候评分生成完成")
 
 
 def generate_clothing_advice(year: int, month: int):
@@ -309,9 +312,9 @@ def analyze_all():
     """
     一键分析：生成所有月度统计、气候评分与穿衣建议。
     """
-    print("开始生成月度统计...")
+    logger.info("开始生成月度统计...")
     generate_monthly_stats()
-    print("分析完成！")
+    logger.info("分析完成！")
 
 
 # ==================== 内部评分算法 ====================
@@ -355,6 +358,10 @@ def _calc_sunlight_score(group: pd.DataFrame) -> int:
 def _calc_air_quality_score(group: pd.DataFrame) -> int:
     """
     空气质量：综合晴天比例与降雨适中度计算。
+
+    注意：由于本项目无实际 AQI/PM2.5 数据，此处使用天气类型作为空气质量
+    的间接指标——晴天多表示大气扩散条件好，降雨适中（5-8天/月）有助于
+    净化空气。评分范围为 0-100。
     """
     if group.empty or 'weather_type' not in group.columns:
         return 50
@@ -362,11 +369,15 @@ def _calc_air_quality_score(group: pd.DataFrame) -> int:
     sunny_days = len(group[group['weather_type'] == 'sunny'])
     rainy_days = len(group[group['weather_type'] == 'rainy'])
 
+    # 晴天比例得分（权重 60%）：晴天越多，空气扩散条件越好
     sunny_ratio = sunny_days / total if total > 0 else 0
-    # 降雨 5-8 天最佳
-    rain_score = max(0, 100 - abs(rainy_days - 6) * 12)
+    sunny_score = sunny_ratio * 60  # 范围 [0, 60]
 
-    score = sunny_ratio * 60 + rain_score * 0.4
+    # 降雨适中度得分（权重 40%）：每月 5-8 天降雨最佳，偏离越多分数越低
+    rain_score_100 = max(0, 100 - abs(rainy_days - 6) * 12)  # 范围 [0, 100]
+    rain_score = rain_score_100 * 0.4  # 缩放到 [0, 40]
+
+    score = sunny_score + rain_score  # 范围 [0, 100]
     return round(score)
 
 

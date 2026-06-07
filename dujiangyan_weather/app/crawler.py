@@ -12,7 +12,7 @@ import time
 import logging
 from datetime import datetime
 
-from app.models import WeatherData
+from app.models import WeatherData, CrawlTask
 
 # ---------- 日志配置 ----------
 logging.basicConfig(
@@ -125,47 +125,91 @@ def crawl_last_12_months() -> list:
         if month_data:
             all_data.extend(month_data)
             logger.info(f'  成功获取 {len(month_data)} 条')
+            # 逐月入库并追踪状态
+            try:
+                parse_and_save(month_data, year=year, month=month)
+            except Exception as e:
+                logger.error(f'  保存 {year}-{month:02d} 失败: {e}')
+        else:
+            # 标记该月爬取失败
+            CrawlTask.objects.update_or_create(
+                year=year,
+                month=month,
+                defaults={
+                    'status': 'failed',
+                    'error_message': '未获取到任何数据',
+                    'completed_at': datetime.now(),
+                }
+            )
         time.sleep(2)  # 反爬：每月请求间隔 2 秒
 
     logger.info(f'总计获取 {len(all_data)} 条数据')
     return all_data
 
 
-def parse_and_save(raw_list: list) -> int:
+def parse_and_save(raw_list: list, year: int = None, month: int = None) -> int:
     """
     解析原始数据并保存到数据库。
 
     参数：
         raw_list: crawl_last_12_months() 的返回值
+        year:     年份（用于更新 CrawlTask 状态）
+        month:    月份（用于更新 CrawlTask 状态）
 
     返回：
         成功保存的记录数
     """
+    # 更新 CrawlTask 状态为 running（如果有指定年月）
+    task = None
+    if year and month:
+        task, _ = CrawlTask.objects.update_or_create(
+            year=year,
+            month=month,
+            defaults={'status': 'running', 'error_message': ''}
+        )
+
     saved_count = 0
-    for item in raw_list:
-        try:
-            date_obj = datetime.strptime(item['date'], '%Y-%m-%d').date()
-            max_temp = float(item['max_temp']) if item['max_temp'] else None
-            min_temp = float(item['min_temp']) if item['min_temp'] else None
+    try:
+        for item in raw_list:
+            try:
+                date_obj = datetime.strptime(item['date'], '%Y-%m-%d').date()
+                max_temp = float(item['max_temp']) if item['max_temp'] else None
+                min_temp = float(item['min_temp']) if item['min_temp'] else None
 
-            wind_text = item.get('wind', '')
-            wind_parts = wind_text.split(' ') if wind_text else ['', '']
-            wind_direction = wind_parts[0]
-            wind_level = wind_parts[1] if len(wind_parts) > 1 else ''
+                wind_text = item.get('wind', '')
+                wind_parts = wind_text.split(' ') if wind_text else ['', '']
+                wind_direction = wind_parts[0]
+                wind_level = wind_parts[1] if len(wind_parts) > 1 else ''
 
-            WeatherData.objects.update_or_create(
-                date=date_obj,
-                defaults={
-                    'max_temp': max_temp,
-                    'min_temp': min_temp,
-                    'weather_desc': item.get('weather', ''),
-                    'wind_direction': wind_direction,
-                    'wind_level': wind_level,
-                }
-            )
-            saved_count += 1
-        except Exception as e:
-            logger.error(f'解析保存失败 {item}: {e}')
+                WeatherData.objects.update_or_create(
+                    date=date_obj,
+                    defaults={
+                        'max_temp': max_temp,
+                        'min_temp': min_temp,
+                        'weather_desc': item.get('weather', ''),
+                        'wind_direction': wind_direction,
+                        'wind_level': wind_level,
+                    }
+                )
+                saved_count += 1
+            except Exception as e:
+                logger.error(f'解析保存失败 {item}: {e}')
+
+        # 标记 CrawlTask 为成功
+        if task:
+            task.status = 'success'
+            task.records_count = saved_count
+            task.completed_at = datetime.now()
+            task.save()
+
+    except Exception as e:
+        # 整体异常，标记 CrawlTask 为失败
+        if task:
+            task.status = 'failed'
+            task.error_message = str(e)
+            task.completed_at = datetime.now()
+            task.save()
+        raise
 
     logger.info(f'成功保存 {saved_count} 条数据到数据库')
     return saved_count
@@ -173,7 +217,7 @@ def parse_and_save(raw_list: list) -> int:
 
 def crawl_range(start_year: int, start_month: int, end_year: int, end_month: int):
     """
-    （保留）爬取指定时间范围的数据并直接入库。
+    （保留）爬取指定时间范围的数据并直接入库，同时追踪 CrawlTask 状态。
     """
     current = datetime(start_year, start_month, 1)
     end = datetime(end_year, end_month, 1)
@@ -184,8 +228,21 @@ def crawl_range(start_year: int, start_month: int, end_year: int, end_month: int
         logger.info(f'正在抓取 {year}-{month:02d} ...')
         raw = fetch_month(year, month)
         if raw:
-            parse_and_save(raw)
-            logger.info(f'  成功保存 {len(raw)} 条')
+            try:
+                parse_and_save(raw, year=year, month=month)
+                logger.info(f'  成功保存 {len(raw)} 条')
+            except Exception as e:
+                logger.error(f'  保存 {year}-{month:02d} 失败: {e}')
+        else:
+            CrawlTask.objects.update_or_create(
+                year=year,
+                month=month,
+                defaults={
+                    'status': 'failed',
+                    'error_message': '未获取到任何数据',
+                    'completed_at': datetime.now(),
+                }
+            )
         time.sleep(2)
 
         # 移动到下一个月
