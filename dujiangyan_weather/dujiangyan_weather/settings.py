@@ -8,6 +8,23 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# ---------- 加载 .env 文件 ----------
+# 从项目根目录读取 .env 文件中的环境变量，避免使用第三方库 python-dotenv
+ENV_FILE = BASE_DIR.parent / '.env'
+if ENV_FILE.exists():
+    with open(ENV_FILE, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            # 跳过空行和注释行
+            if not line or line.startswith('#'):
+                continue
+            # 解析 KEY=VALUE 格式
+            if '=' in line:
+                key, _, value = line.partition('=')
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")  # 移除引号
+                os.environ.setdefault(key, value)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/

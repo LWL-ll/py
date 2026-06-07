@@ -64,11 +64,14 @@ def api_weather_list(request):
 # ==================== 月度统计 ====================
 
 def api_monthly_stats(request):
-    """获取月度统计数据"""
+    """获取月度统计数据（可按年、月筛选）"""
     year = request.GET.get('year')
+    month = request.GET.get('month')
     queryset = MonthlyStats.objects.all()
     if year:
         queryset = queryset.filter(year=int(year))
+    if month:
+        queryset = queryset.filter(month=int(month))
     data = list(queryset.values())
     return JsonResponse({'code': 0, 'data': data})
 
