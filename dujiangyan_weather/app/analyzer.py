@@ -160,6 +160,7 @@ def get_weather_distribution(year: int = None, month: int = None) -> list:
             total_dist[desc] = total_dist.get(desc, 0) + count
 
     # 映射到前端所需的颜色与名称
+    # 按子串归类：含"雨"→雨色，含"雪"→雪色，以此类推
     color_map = {
         '晴': '#D4A373',
         '多云': '#A8A29E',
@@ -169,12 +170,30 @@ def get_weather_distribution(year: int = None, month: int = None) -> list:
     }
     default_color = '#9CA3AF'
 
+    def get_color(desc: str) -> str:
+        """根据天气描述子串匹配颜色"""
+        if not desc:
+            return default_color
+        if '雪' in desc:
+            return color_map['雪']
+        if '雨' in desc:
+            return color_map['雨']
+        if '雾' in desc or '霾' in desc:
+            return '#A8A29E'  # 雾霾用灰色
+        if '多云' in desc:
+            return color_map['多云']
+        if '阴' in desc:
+            return color_map['阴']
+        if '晴' in desc:
+            return color_map['晴']
+        return default_color
+
     result = []
     for name, value in total_dist.items():
         result.append({
             'name': name,
             'value': value,
-            'color': color_map.get(name, default_color),
+            'color': get_color(name),
         })
 
     # 按数量降序排列

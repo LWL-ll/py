@@ -28,6 +28,7 @@ def get_dataframe() -> pd.DataFrame:
         return df
 
     # 日期格式统一为 YYYY-MM-DD
+
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.sort_values('date').reset_index(drop=True)
     return df
