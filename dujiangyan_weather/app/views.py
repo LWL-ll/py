@@ -6,7 +6,7 @@ from django.db.models import Avg, Max, Min, Count
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_GET
 
-from .models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask
+from .models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask, ForecastData
 from .analyzer import (
     get_weather_distribution,
     get_climate_scores,
@@ -236,5 +236,32 @@ def api_analyze(request):
         return JsonResponse({
             'code': 500,
             'message': f'分析异常: {str(e)}',
+            'data': {}
+        })
+
+
+# ==================== 40天预报 ====================
+
+def api_forecast_list(request):
+    """获取 40 天预报数据"""
+    data = list(ForecastData.objects.all().order_by('date').values())
+    return JsonResponse({'code': 0, 'data': data})
+
+
+@require_POST
+def api_forecast_fetch(request):
+    """触发爬取 40 天预报数据"""
+    try:
+        from app.crawler import fetch_forecast
+        count = fetch_forecast()
+        return JsonResponse({
+            'code': 0,
+            'message': f'预报爬取完成，保存 {count} 条',
+            'data': {'count': count}
+        })
+    except Exception as e:
+        return JsonResponse({
+            'code': 500,
+            'message': f'预报爬取异常: {str(e)}',
             'data': {}
         })

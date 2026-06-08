@@ -7,6 +7,7 @@ export default function Navbar() {
   const { selectedMonth, setSelectedMonth, availableMonths, loading, triggerRefresh } = useMonth();
   const [crawlLoading, setCrawlLoading] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [forecastLoading, setForecastLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState('系统就绪');
 
   /** 一键爬取 */
@@ -46,6 +47,26 @@ export default function Navbar() {
       setStatusMsg('分析请求异常');
     } finally {
       setAnalyzeLoading(false);
+    }
+  };
+
+  /** 爬取预报 */
+  const handleForecast = async () => {
+    setForecastLoading(true);
+    setStatusMsg('预报爬取中...');
+    try {
+      const res = await apiFetch('/api/weather/forecast/fetch/', { method: 'POST' });
+      const json = await res.json();
+      if (json.code === 0) {
+        setStatusMsg(`预报完成，${json.data?.count ?? '?'} 条`);
+        triggerRefresh();
+      } else {
+        setStatusMsg(`预报爬取失败: ${json.message}`);
+      }
+    } catch {
+      setStatusMsg('预报请求异常');
+    } finally {
+      setForecastLoading(false);
     }
   };
 
@@ -112,11 +133,27 @@ export default function Navbar() {
             )}
           </button>
 
+          {/* Button - 爬取预报 */}
+          <button
+            onClick={handleForecast}
+            disabled={forecastLoading}
+            className="h-10 px-5 bg-white border border-[#E8E8E6] rounded-xl text-sm font-medium text-[#81B29A] hover:bg-[#FAFAF8] transition-colors disabled:opacity-60"
+          >
+            {forecastLoading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                预报中...
+              </span>
+            ) : (
+              '40天预报'
+            )}
+          </button>
+
           {/* Status Badge */}
           <div className="h-6 px-2.5 bg-white border border-[#E8E8E6] rounded-xl flex items-center gap-2">
             <span
               className={`w-2 h-2 rounded-full ${
-                crawlLoading || analyzeLoading ? 'bg-[#D4A373] animate-pulse' : 'bg-[#81B29A]'
+                crawlLoading || analyzeLoading || forecastLoading ? 'bg-[#D4A373] animate-pulse' : 'bg-[#81B29A]'
               }`}
             ></span>
             <span className="text-xs text-[#8E8E93] truncate max-w-[120px]">{statusMsg}</span>

@@ -1,0 +1,443 @@
+/* ========== 登录/注册页面公共样式 ==========
+   与网站内容页风格统一：浅色背景 + 柔光卡片 + 蓝色点缀 */
+
+/* --- 基础重置 --- */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", -apple-system, sans-serif;
+  background: #e3f2fd;
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* --- 双栏布局 --- */
+#login-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+}
+
+/* ========== 左侧面板：柔光蓝 + 动画角色 ========== */
+.left-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 40%, #e8eaf6 100%);
+  padding: 40px 48px;
+  overflow: hidden;
+}
+
+.characters-wrapper {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 装饰柔光 */
+.left-panel::after {
+  content: '';
+  position: absolute;
+  top: 10%;
+  right: 8%;
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  filter: blur(100px);
+}
+
+.left-panel::before {
+  content: '';
+  position: absolute;
+  bottom: 5%;
+  left: 5%;
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  filter: blur(120px);
+}
+
+/* ========== 右侧面板：白色 + 柔光卡片 ========== */
+.right-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+  padding: 40px;
+}
+
+.form-card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 40px 36px;
+  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+/* --- 图标 --- */
+.sparkle-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.sparkle-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* --- 表单头部 --- */
+.form-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.form-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 4px;
+}
+
+.form-header p {
+  font-size: 14px;
+  color: #90a4ae;
+}
+
+/* --- 表单字段 --- */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #546e7a;
+  margin-bottom: 6px;
+}
+
+.form-group .input-wrapper {
+  position: relative;
+}
+
+.form-group input {
+  width: 100%;
+  height: 48px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 0 42px 0 16px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #333;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+
+.form-group input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.08);
+}
+
+.form-group input::placeholder {
+  color: #bdbdbd;
+}
+
+/* 密码字段 */
+.form-group input[type="password"]:not(:placeholder-shown) {
+  letter-spacing: 2px;
+}
+
+/* --- 密码可见性切换 --- */
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #bdbdbd;
+  padding: 6px;
+  transition: color 0.2s;
+}
+
+.toggle-password:hover { color: #1976d2; }
+
+/* --- 记住我 & 忘记密码 --- */
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #78909c;
+  cursor: pointer;
+}
+
+.remember-me input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #1976d2;
+  cursor: pointer;
+}
+
+.forgot-link {
+  font-size: 13px;
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.forgot-link:hover { opacity: 0.7; }
+
+/* --- 主按钮 --- */
+.btn-login {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border-radius: 25px;
+  border: none;
+  background: #1976d2;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  margin-bottom: 14px;
+  transition: all 0.25s;
+  box-shadow: 0 4px 14px rgba(25, 118, 210, 0.25);
+}
+
+.btn-login:hover {
+  background: #1565c0;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+  transform: translateY(-1px);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.btn-login .btn-text {
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.btn-login .btn-hover-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #1565c0;
+  color: #fff;
+  opacity: 0;
+  transition: all 0.3s;
+  border-radius: 25px;
+}
+
+.btn-login:hover .btn-text {
+  transform: translateX(40px);
+  opacity: 0;
+}
+
+.btn-login:hover .btn-hover-content {
+  opacity: 1;
+}
+
+/* --- 底部链接 --- */
+.signup-link {
+  text-align: center;
+  font-size: 13px;
+  color: #b0bec5;
+  margin-top: 28px;
+}
+
+.signup-link a {
+  color: #1976d2;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.signup-link a:hover { text-decoration: underline; }
+
+/* ========== 动画角色（原始配色） ========== */
+.characters-scene {
+  position: relative;
+  width: 480px;
+  height: 360px;
+}
+
+.character {
+  position: absolute;
+  bottom: 0;
+  transition: all 0.7s ease-in-out;
+  transform-origin: bottom center;
+}
+
+.char-purple {
+  left: 60px; width: 170px; height: 370px;
+  background: #6C3FF5;
+  border-radius: 10px 10px 0 0;
+  z-index: 1;
+}
+
+.char-black {
+  left: 220px; width: 115px; height: 290px;
+  background: #2D2D2D;
+  border-radius: 8px 8px 0 0;
+  z-index: 2;
+}
+
+.char-orange {
+  left: 0; width: 230px; height: 190px;
+  background: #FF9B6B;
+  border-radius: 115px 115px 0 0;
+  z-index: 3;
+}
+
+.char-yellow {
+  left: 290px; width: 135px; height: 215px;
+  background: #E8D754;
+  border-radius: 68px 68px 0 0;
+  z-index: 4;
+}
+
+/* --- 眼睛 --- */
+.eyes {
+  position: absolute;
+  display: flex;
+  transition: all 0.7s ease-in-out;
+}
+
+.eyeball {
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: height 0.15s ease;
+  overflow: hidden;
+}
+
+.pupil {
+  border-radius: 50%;
+  background: #2D2D2D;
+  transition: transform 0.1s ease-out;
+}
+
+.bare-pupil {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #2D2D2D;
+  transition: transform 0.7s ease-in-out;
+}
+
+/* --- 嘴巴 --- */
+.yellow-mouth {
+  position: absolute;
+  width: 50px; height: 4px;
+  background: #2D2D2D;
+  border-radius: 2px;
+  transition: all 0.7s ease-in-out;
+}
+
+/* --- 摇头动画 --- */
+@keyframes shakeHead {
+  0%, 100% { translate: 0 0; }
+  10%  { translate: -9px 0; }
+  20%  { translate: 7px 0; }
+  30%  { translate: -6px 0; }
+  40%  { translate: 5px 0; }
+  50%  { translate: -4px 0; }
+  60%  { translate: 3px 0; }
+  70%  { translate: -2px 0; }
+  80%  { translate: 1px 0; }
+  90%  { translate: -0.5px 0; }
+}
+
+.eyes.shake-head, .yellow-mouth.shake-head, .orange-mouth.shake-head {
+  animation: shakeHead 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* 难过嘴巴 */
+.orange-mouth {
+  position: absolute;
+  width: 28px; height: 14px;
+  border: 3px solid #2D2D2D;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+  opacity: 0;
+  transition: all 0.7s ease-in-out;
+}
+
+.orange-mouth.visible { opacity: 1; }
+
+/* ========== 消息提示 ========== */
+.error-msg {
+  display: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.success-msg {
+  display: none;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #16a34a;
+  background: rgba(22, 163, 74, 0.06);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.form-group input.error {
+  border-color: #dc2626;
+  background: #fffbfb;
+}
+
+.form-group label.error-label {
+  color: #dc2626;
+}
+
+/* ========== 响应式 ========== */
+@media (max-width: 900px) {
+  #login-page { grid-template-columns: 1fr; }
+  .left-panel { display: none; }
+  .form-card {
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    padding: 32px 24px;
+  }
+}

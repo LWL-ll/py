@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>注册 - 校园美食</title>
+{% load static %}
+<link href="{% static 'css/auth.css' %}" rel="stylesheet">
+<style>
+  /* 注册页专属：验证码按钮 */
+  .btn-get-code {
+    height: 48px;
+    padding: 0 16px;
+    border: 1.5px solid #e0e0e0;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1976d2;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.25s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-get-code:hover:not(:disabled) {
+    border-color: #1976d2;
+    background: #e3f2fd;
+  }
+  .btn-get-code:disabled {
+    color: #bdbdbd;
+    cursor: not-allowed;
+    border-color: #eeeeee;
+    background: #fafafa;
+  }
+</style>
+</head>
+<body>
+
+<div id="login-page">
+  <!-- 左侧面板：柔光蓝 + 动画角色 -->
+  <div class="left-panel">
+    <div class="characters-wrapper">
+      <div class="characters-scene" id="characters-scene">
+        <div class="character char-purple" id="char-purple">
+          <div class="eyes" id="purple-eyes" style="left:45px;top:40px;gap:28px;">
+            <div class="eyeball" id="purple-eye-l" style="width:18px;height:18px;">
+              <div class="pupil" id="purple-pupil-l" style="width:7px;height:7px;"></div>
+            </div>
+            <div class="eyeball" id="purple-eye-r" style="width:18px;height:18px;">
+              <div class="pupil" id="purple-pupil-r" style="width:7px;height:7px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="character char-black" id="char-black">
+          <div class="eyes" id="black-eyes" style="left:26px;top:32px;gap:20px;">
+            <div class="eyeball" id="black-eye-l" style="width:16px;height:16px;">
+              <div class="pupil" id="black-pupil-l" style="width:6px;height:6px;"></div>
+            </div>
+            <div class="eyeball" id="black-eye-r" style="width:16px;height:16px;">
+              <div class="pupil" id="black-pupil-r" style="width:6px;height:6px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="character char-orange" id="char-orange">
+          <div class="eyes" id="orange-eyes" style="left:82px;top:90px;gap:28px;">
+            <div class="bare-pupil" id="orange-pupil-l"></div>
+            <div class="bare-pupil" id="orange-pupil-r"></div>
+          </div>
+          <div class="orange-mouth" id="orange-mouth" style="left:90px;top:120px;"></div>
+        </div>
+        <div class="character char-yellow" id="char-yellow">
+          <div class="eyes" id="yellow-eyes" style="left:52px;top:40px;gap:20px;">
+            <div class="bare-pupil" id="yellow-pupil-l"></div>
+            <div class="bare-pupil" id="yellow-pupil-r"></div>
+          </div>
+          <div class="yellow-mouth" id="yellow-mouth" style="left:40px;top:88px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 右侧面板：柔光卡片 + 注册表单 -->
+  <div class="right-panel">
+    <div class="form-card">
+      <div class="sparkle-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L13.5 9H10.5L12 2Z" fill="#1976d2"/>
+          <path d="M12 22L10.5 15H13.5L12 22Z" fill="#1976d2"/>
+          <path d="M2 12L9 10.5V13.5L2 12Z" fill="#1976d2"/>
+          <path d="M22 12L15 13.5V10.5L22 12Z" fill="#1976d2"/>
+        </svg>
+      </div>
+      <div class="form-header">
+        <h1>创建账号</h1>
+        <p>开启你的美食之旅</p>
+      </div>
+
+      <form id="register-form" onsubmit="return false;">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label id="username-label" for="username">用户名</label>
+          <div class="input-wrapper">
+            <input type="text" id="username" placeholder="请输入用户名（至少3个字符）" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="email-label" for="email">邮箱</label>
+          <div class="input-wrapper" style="display: flex; gap: 10px;">
+            <input type="email" id="email" placeholder="请输入邮箱地址" autocomplete="off" style="flex: 1;" />
+            <button type="button" id="btn-get-code" class="btn-get-code">获取验证码</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="code-label" for="verification-code">验证码</label>
+          <div class="input-wrapper">
+            <input type="text" id="verification-code" placeholder="请输入6位验证码" maxlength="6" autocomplete="off" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="password-label" for="password">密码</label>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="请输入密码（至少6个字符）" />
+            <button type="button" class="toggle-password" id="toggle-password">
+              <svg id="eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label id="confirm-password-label" for="confirm-password">确认密码</label>
+          <div class="input-wrapper">
+            <input type="password" id="confirm-password" placeholder="请再次输入密码" />
+            <button type="button" class="toggle-password" id="toggle-confirm-password">
+              <svg id="confirm-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg id="confirm-eye-off-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="error-msg" id="error-msg"></div>
+
+        <button type="submit" class="btn-login" id="btn-register">
+          <span class="btn-text">注册</span>
+          <div class="btn-hover-content">
+            <span>注册</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+        </button>
+      </form>
+
+      <div class="signup-link">
+        已有账号？<a href="/auth/login">去登录</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/auth-common.js' %}"></script>
+<script>
+(function() {
+  var usernameInput  = document.getElementById('username');
+  var emailInput     = document.getElementById('email');
+  var codeInput      = document.getElementById('verification-code');
+  var passwordInput  = document.getElementById('password');
+  var confirmInput   = document.getElementById('confirm-password');
+  var toggleBtn      = document.getElementById('toggle-password');
+  var eyeIcon        = document.getElementById('eye-icon');
+  var eyeOffIcon     = document.getElementById('eye-off-icon');
+  var toggleConfirm  = document.getElementById('toggle-confirm-password');
+  var confirmEye     = document.getElementById('confirm-eye-icon');
+  var confirmEyeOff  = document.getElementById('confirm-eye-off-icon');
+
+  var isCodeSent     = false;
+  var countdownTimer = null;
+  var showConfirmPwd = false;
+
+  /* 初始化角色动画 */
+  AuthCharacters.init({
+    passwordInput: passwordInput,
+    toggleBtn: toggleBtn,
+    eyeIcon: eyeIcon,
+    eyeOffIcon: eyeOffIcon,
+    formFields: [
+      { el: usernameInput, isPassword: false },
+      { el: emailInput,    isPassword: false },
+      { el: passwordInput, isPassword: true  },
+      { el: confirmInput,  isPassword: true  }
+    ]
+  });
+
+  /* 确认密码切换可见性 */
+  toggleConfirm.addEventListener('click', function() {
+    showConfirmPwd = !showConfirmPwd;
+    confirmInput.type = showConfirmPwd ? 'text' : 'password';
+    confirmEye.style.display    = showConfirmPwd ? 'none' : 'block';
+    confirmEyeOff.style.display = showConfirmPwd ? 'block' : 'none';
+    AuthCharacters.update();
+  });
+  confirmInput.addEventListener('input', function() { AuthCharacters.update(); });
+
+  /* 验证码发送 */
+  function getVerificationCode() {
+    var email = emailInput.value.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailInput.classList.add('error');
+      document.getElementById('email-label').classList.add('error-label');
+      AuthCharacters.showMsg('error', '请先输入有效的邮箱地址');
+      AuthCharacters.triggerError();
+      return;
+    }
+    var btn = document.getElementById('btn-get-code');
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.textContent = '发送中...';
+
+    fetch('/auth/send-code/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        isCodeSent = true;
+        AuthCharacters.hideMsg();
+        AuthCharacters.showMsg('success', '验证码已发送，5分钟内有效，请查收邮件');
+        startCountdown(btn);
+      } else {
+        btn.disabled = false;
+        btn.textContent = '获取验证码';
+        AuthCharacters.showMsg('error', data.message || '验证码发送失败');
+        AuthCharacters.triggerError();
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = '获取验证码';
+      AuthCharacters.showMsg('error', '网络错误，请稍后重试');
+      AuthCharacters.triggerError();
+    });
+  }
+
+  document.getElementById('btn-get-code').addEventListener('click', getVerificationCode);
+
+  function startCountdown(btn) {
+    var seconds = 60;
+    btn.textContent = seconds + 's';
+    countdownTimer = setInterval(function() {
+      seconds--;
+      btn.textContent = seconds + 's';
+      if (seconds <= 0) {
+        clearInterval(countdownTimer);
+        btn.disabled = false;
+        btn.textContent = '重新发送';
+      }
+    }, 1000);
+  }
+
+  /* 注册提交 */
+  document.getElementById('register-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var username   = usernameInput.value.trim();
+    var email      = emailInput.value.trim();
+    var pwd        = passwordInput.value;
+    var confirmPwd = confirmInput.value;
+    var code       = codeInput.value.trim();
+
+    var unameLabel = document.getElementById('username-label');
+    var emailLabel = document.getElementById('email-label');
+    var codeLabel  = document.getElementById('code-label');
+    var pwdLabel   = document.getElementById('password-label');
+    var cpwdLabel  = document.getElementById('confirm-password-label');
+
+    AuthCharacters.hideMsg();
+    [usernameInput, emailInput, codeInput, passwordInput, confirmInput].forEach(function(el) { el.classList.remove('error'); });
+    [unameLabel, emailLabel, codeLabel, pwdLabel, cpwdLabel].forEach(function(el) { el.classList.remove('error-label'); });
+
+    if (!username || username.length < 3) {
+      usernameInput.classList.add('error'); unameLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '用户名至少需要3个字符');
+      AuthCharacters.triggerError(); return;
+    }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      emailInput.classList.add('error'); emailLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '请输入有效的邮箱地址');
+      AuthCharacters.triggerError(); return;
+    }
+    if (!isCodeSent) {
+      codeInput.classList.add('error'); codeLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '请先获取验证码');
+      AuthCharacters.triggerError(); return;
+    }
+    if (!code || code.length !== 6) {
+      codeInput.classList.add('error'); codeLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '请输入6位验证码');
+      AuthCharacters.triggerError(); return;
+    }
+    if (!pwd || pwd.length < 6) {
+      passwordInput.classList.add('error'); pwdLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '密码至少需要6个字符');
+      AuthCharacters.triggerError(); return;
+    }
+    if (pwd !== confirmPwd) {
+      confirmInput.classList.add('error'); cpwdLabel.classList.add('error-label');
+      AuthCharacters.showMsg('error', '两次输入的密码不一致');
+      AuthCharacters.triggerError(); return;
+    }
+
+    var btn = document.getElementById('btn-register');
+    btn.querySelector('.btn-text').textContent = '注册中...';
+    btn.disabled = true;
+
+    fetch('/auth/register-user/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+      body: JSON.stringify({ username: username, email: email, password: pwd, verification_code: code })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.success) {
+        AuthCharacters.showMsg('success', '注册成功！已自动登录，即将跳转...');
+        btn.querySelector('.btn-text').textContent = '注册成功！';
+        setTimeout(function() { window.location.href = '/'; }, 1000);
+      } else {
+        btn.querySelector('.btn-text').textContent = '注册';
+        btn.disabled = false;
+        AuthCharacters.showMsg('error', data.message || '注册失败，请重试');
+        AuthCharacters.triggerError();
+      }
+    })
+    .catch(function() {
+      btn.querySelector('.btn-text').textContent = '注册';
+      btn.disabled = false;
+      AuthCharacters.showMsg('error', '网络错误，请稍后重试');
+      AuthCharacters.triggerError();
+    });
+  });
+})();
+</script>
+</body>
+</html>

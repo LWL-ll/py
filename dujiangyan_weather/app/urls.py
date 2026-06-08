@@ -17,7 +17,11 @@ urlpatterns = [
     path('api/weather/advice/', views.api_clothing_advice, name='api_clothing_advice'),
     path('api/weather/months/', views.api_available_months, name='api_available_months'),
 
-    # 操作 API（新增）
+    # 操作 API
     path('api/weather/crawl/', views.api_crawl, name='api_crawl'),
     path('api/weather/analyze/', views.api_analyze, name='api_analyze'),
+
+    # 40天预报 API
+    path('api/weather/forecast/', views.api_forecast_list, name='api_forecast_list'),
+    path('api/weather/forecast/fetch/', views.api_forecast_fetch, name='api_forecast_fetch'),
 ]

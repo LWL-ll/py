@@ -2,6 +2,7 @@ import { Suspense, lazy } from 'react';
 import { MonthProvider } from './context/MonthContext';
 import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
+import ForecastRow from './components/ForecastRow';
 import Footer from './components/Footer';
 
 // 重型图表组件按需加载，减小首屏 bundle
@@ -30,8 +31,11 @@ export default function App() {
           {/* 01-Header / 顶部控制栏（同步加载） */}
           <Navbar />
 
-          {/* 02-StatsGrid / 统计卡片（同步加载，API 返回前显示骨架） */}
+          {/* 02-StatsGrid / 统计卡片 */}
           <StatsGrid />
+
+          {/* 02.5-未来天气预报 */}
+          <ForecastRow />
 
           {/* 03-PrimaryCharts / 主图表区（懒加载） */}
           <Suspense fallback={<ChartSkeleton label="加载图表..." />}>

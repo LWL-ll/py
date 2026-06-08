@@ -1,5 +1,5 @@
 from django.contrib import admin
-from app.models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask
+from app.models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask, ForecastData
 
 
 @admin.register(WeatherData)
@@ -28,3 +28,11 @@ class CrawlTaskAdmin(admin.ModelAdmin):
     list_display = ('year', 'month', 'status', 'records_count', 'created_at', 'completed_at')
     list_filter = ('status', 'year')
     search_fields = ('year', 'month')
+
+
+@admin.register(ForecastData)
+class ForecastDataAdmin(admin.ModelAdmin):
+    list_display = ('date', 'day_temp', 'night_temp', 'weather_desc', 'week', 'created_at')
+    list_filter = ('date',)
+    search_fields = ('weather_desc',)
+    date_hierarchy = 'date'

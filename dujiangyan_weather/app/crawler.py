@@ -14,7 +14,7 @@ import logging
 from datetime import datetime
 from django.utils import timezone as django_timezone
 
-from app.models import WeatherData, CrawlTask
+from app.models import WeatherData, CrawlTask, ForecastData
 
 # ---------- 日志配置 ----------
 logging.basicConfig(
@@ -288,6 +288,85 @@ def run_crawler():
         parse_and_save(raw_data)
     else:
         logger.warning('未获取到任何数据')
+
+
+def fetch_forecast(area_id: int = None) -> int:
+    """
+    爬取 2345 天气网 40 天预报数据并入库。
+
+    数据来源：/wea_forty/{area_id}.htm 页面内嵌的 JSON 数据。
+
+    参数：
+        area_id: 城市编码，默认使用 AREA_ID (60407)
+
+    返回：
+        成功保存的记录数
+    """
+    import json as json_module
+
+    if area_id is None:
+        area_id = AREA_ID
+
+    url = f'https://tianqi.2345.com/wea_forty/{area_id}.htm'
+    req_headers = {**HEADERS, 'Referer': url}
+
+    logger.info(f'正在爬取 40 天预报: {url}')
+
+    try:
+        resp = requests.get(url, headers=req_headers, timeout=30)
+        resp.raise_for_status()
+    except requests.exceptions.RequestException as e:
+        logger.error(f'预报页面请求失败: {e}')
+        return 0
+
+    # 从页面中提取内嵌的 JSON 预报数据
+    # 格式: "data":[{...40条预报...}]
+    match = re.search(r'"data"\s*:\s*(\[.*?\])', resp.text, re.DOTALL)
+    if not match:
+        logger.error('未在页面中找到预报数据')
+        return 0
+
+    # 找到完整的 JSON 数组（处理嵌套括号）
+    raw = match.group(1)
+    bracket_count = 0
+    end_idx = 0
+    for i, c in enumerate(raw):
+        if c == '[':
+            bracket_count += 1
+        elif c == ']':
+            bracket_count -= 1
+            if bracket_count == 0:
+                end_idx = i + 1
+                break
+
+    try:
+        forecast_list = json_module.loads(raw[:end_idx])
+    except json_module.JSONDecodeError as e:
+        logger.error(f'预报 JSON 解析失败: {e}')
+        return 0
+
+    saved_count = 0
+    for item in forecast_list:
+        try:
+            # 时间戳转日期
+            ts = item.get('time', 0)
+            date_obj = datetime.fromtimestamp(ts).date()
+
+            ForecastData.objects.update_or_create(
+                date=date_obj,
+                defaults={
+                    'day_temp': item.get('day_temp'),
+                    'night_temp': item.get('night_temp'),
+                    'weather_desc': item.get('weather', ''),
+                    'week': item.get('week', ''),
+                }
+            )
+            saved_count += 1
+        except Exception as e:
+            logger.error(f'预报保存失败 {item}: {e}')
+
+    logger.info(f'40天预报保存完成，共 {saved_count} 条')
+    return saved_count
 
 
 if __name__ == '__main__':

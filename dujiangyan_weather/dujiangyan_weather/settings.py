@@ -89,10 +89,10 @@ WSGI_APPLICATION = 'dujiangyan_weather.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dujiangyan_weather',
-        'USER': 'root',
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': 'localhost',
+        'NAME': '都江堰',
+        'USER': '都江堰',
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'yrDKZ2TiPiMGfAeD'),
+        'HOST': '47.109.137.204',
         'PORT': '3306',
         'OPTIONS': {
             'charset': 'utf8mb4',

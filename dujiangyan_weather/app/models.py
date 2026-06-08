@@ -200,3 +200,23 @@ class CrawlTask(models.Model):
 
     def __str__(self):
         return f"{self.year}-{self.month:02d} ({self.get_status_display()})"
+
+
+class ForecastData(models.Model):
+    """40天预报数据"""
+
+    date = models.DateField(verbose_name='日期', unique=True)
+    day_temp = models.IntegerField(verbose_name='白天气温(℃)', null=True, blank=True)
+    night_temp = models.IntegerField(verbose_name='夜间气温(℃)', null=True, blank=True)
+    weather_desc = models.CharField(max_length=50, verbose_name='天气状况', blank=True)
+    week = models.CharField(max_length=10, verbose_name='星期', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    class Meta:
+        db_table = 'forecast_data'
+        verbose_name = '预报数据'
+        verbose_name_plural = verbose_name
+        ordering = ['date']
+
+    def __str__(self):
+        return f"{self.date} 预报 {self.weather_desc}"
