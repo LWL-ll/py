@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import logging
 from django.db.models import Avg, Max, Min, Count, Q
-from app.models import WeatherData, MonthlyStats, ClothingAdvice
+from app.models import WeatherData, MonthlyStats, ClothingAdvice, ForecastData
 
 logger = logging.getLogger(__name__)
 
@@ -73,71 +73,245 @@ def generate_monthly_stats(year: int = None, month: int = None):
         )
 
         # 同步生成穿衣建议
-        generate_clothing_advice(y, m)
+        generate_comprehensive_advice(y, m)
 
     logger.info("月度统计与气候评分生成完成")
 
 
-def generate_clothing_advice(year: int, month: int):
+def generate_comprehensive_advice(year: int, month: int):
     """
-    根据月度天气特征生成穿衣建议文本与标签。
+    综合历史数据与未来预报，生成多维度智能建议。
+
+    数据来源：
+        - 历史数据：WeatherData（近 60 天实际观测）
+        - 预报数据：ForecastData（未来 40 天预报）
+        - 月度统计：MonthlyStats
+
+    生成 5 类建议：穿衣/出行/运动/健康/预警
     """
+    from datetime import date, timedelta
+
     stats = MonthlyStats.objects.filter(year=year, month=month).first()
     if not stats:
         return
 
-    avg_max = stats.avg_max_temp or 0
-    avg_min = stats.avg_min_temp or 0
-    rainy = stats.rainy_days or 0
+    # ---------- 数据准备 ----------
+    today = date.today()
+    hist_start = today - timedelta(days=60)
+    hist_qs = WeatherData.objects.filter(date__gte=hist_start).order_by('date')
+    forecast_qs = ForecastData.objects.all().order_by('date')[:14]
 
-    tags = []
-    advice_parts = []
+    # 历史统计
+    hist_count = hist_qs.count()
+    hist_avg_max = hist_qs.aggregate(a=Avg('max_temp'))['a'] or 0
+    hist_avg_min = hist_qs.aggregate(a=Avg('min_temp'))['a'] or 0
+    hist_rain_days = hist_qs.filter(weather_desc__icontains='雨').count() if hist_count else 0
+    hist_avg_humidity = hist_qs.aggregate(a=Avg('humidity'))['a'] or 50
 
-    # 温度建议
-    if avg_max > 32:
-        advice_parts.append("气温较高，建议穿着轻薄透气的短袖、短裤，注意防晒补水。")
-        tags.extend(["短袖", "防晒"])
-    elif avg_max > 26:
-        advice_parts.append("气温偏热，建议穿着透气舒适的短袖或薄长袖。")
-        tags.append("短袖")
-    elif avg_max > 20:
-        advice_parts.append("气温适宜，可穿着薄外套或长袖衬衫，体感舒适。")
-        tags.append("薄外套")
-    elif avg_max > 12:
-        advice_parts.append("气温偏凉，建议穿着保暖外套或毛衣，注意防风。")
-        tags.extend(["厚外套", "毛衣"])
+    # 预报统计
+    fc_count = forecast_qs.count()
+    fc_avg_high = forecast_qs.aggregate(a=Avg('day_temp'))['a'] or 0
+    fc_avg_low = forecast_qs.aggregate(a=Avg('night_temp'))['a'] or 0
+    fc_rain_days = sum(1 for f in forecast_qs if f.weather_desc and '雨' in f.weather_desc)
+    fc_max_temp = max((f.day_temp or 0) for f in forecast_qs) if fc_count else 0
+    fc_min_temp = min((f.night_temp or 99) for f in forecast_qs) if fc_count else 99
+
+    # 综合判断用：取历史+预报的"代表性"值
+    rep_high = (hist_avg_max + fc_avg_high) / 2 if fc_count else hist_avg_max
+    rep_low = (hist_avg_min + fc_avg_low) / 2 if fc_count else hist_avg_min
+    temp_range = rep_high - rep_low
+
+    categories = {}
+
+    # ==================== 1. 穿衣建议 ====================
+    clothing_tags = []
+    clothing_parts = []
+
+    if rep_high > 32:
+        clothing_parts.append("气温较高，建议穿着轻薄透气的短袖短裤，注意防晒补水。")
+        clothing_tags.extend(["短袖", "防晒霜", "遮阳帽"])
+    elif rep_high > 26:
+        clothing_parts.append("气温偏热，建议穿着透气舒适的短袖或薄长袖。")
+        clothing_tags.extend(["短袖", "薄长袖"])
+    elif rep_high > 20:
+        clothing_parts.append("气温适宜，可穿着薄外套或长袖衬衫，体感舒适。")
+        clothing_tags.append("薄外套")
+    elif rep_high > 12:
+        clothing_parts.append("气温偏凉，建议穿着保暖外套或毛衣，注意防风。")
+        clothing_tags.extend(["厚外套", "毛衣"])
     else:
-        advice_parts.append("气温较低，请注意保暖，建议穿着羽绒服或棉衣，佩戴围巾手套。")
-        tags.extend(["羽绒服", "围巾"])
+        clothing_parts.append("气温较低，请注意保暖，建议穿着羽绒服或棉衣。")
+        clothing_tags.extend(["羽绒服", "围巾", "手套"])
 
-    # 最低温补充
-    if avg_min < 5:
-        advice_parts.append("早晚寒冷，建议内穿保暖内衣。")
-        tags.append("保暖内衣")
-    elif avg_min < 12:
-        advice_parts.append("早晚温差较大，外出建议携带一件外套。")
-        tags.append("外套")
+    if rep_low < 5:
+        clothing_parts.append("早晚寒冷，建议内穿保暖内衣。")
+        clothing_tags.append("保暖内衣")
+    elif temp_range > 10:
+        clothing_parts.append(f"昼夜温差较大（约{temp_range:.0f}°C），外出建议携带一件外套。")
+        clothing_tags.append("外套")
 
-    # 降雨建议
-    if rainy > 12:
-        advice_parts.append(f"本月降雨频繁（{rainy}天），请随身携带雨具，注意路面湿滑。")
-        tags.append("雨具")
-    elif rainy > 6:
-        advice_parts.append(f"本月有{rainy}天降雨，出行建议备好雨伞或雨衣。")
-        tags.append("雨具")
+    if hist_avg_humidity > 75:
+        clothing_parts.append("空气湿度较大，建议选择吸湿透气的面料。")
+        clothing_tags.append("透气面料")
 
-    # 湿度补充
-    if stats.avg_humidity and stats.avg_humidity > 75:
-        advice_parts.append("空气湿度较大，建议选择吸湿透气的面料。")
-        tags.append("透气面料")
+    categories['clothing'] = {
+        'advice': ' '.join(clothing_parts),
+        'tags': list(set(clothing_tags)),
+    }
 
-    advice_text = " ".join(advice_parts)
+    # ==================== 2. 出行建议 ====================
+    travel_tags = []
+    travel_parts = []
 
+    if fc_rain_days >= 5:
+        travel_parts.append(f"未来两周降雨频繁（{fc_rain_days}天），出行务必携带雨具，注意路面湿滑。")
+        travel_tags.extend(["雨伞", "防水鞋"])
+    elif fc_rain_days >= 2:
+        travel_parts.append(f"未来两周有{fc_rain_days}天可能降雨，建议随身携带折叠伞。")
+        travel_tags.append("折叠伞")
+    else:
+        travel_parts.append("未来两周降雨较少，出行无需特别准备雨具。")
+        travel_tags.append("晴好")
+
+    if fc_max_temp > 35:
+        travel_parts.append("将出现高温天气，避免中午时段户外活动，注意防暑降温。")
+        travel_tags.append("防暑")
+    elif fc_min_temp < 0:
+        travel_parts.append("将出现零下低温，注意路面结冰，驾车减速慢行。")
+        travel_tags.append("防滑")
+
+    if rep_high >= 20 and fc_rain_days <= 2:
+        travel_parts.append("天气条件适合短途旅行和户外郊游。")
+        travel_tags.append("适合出游")
+
+    categories['travel'] = {
+        'advice': ' '.join(travel_parts),
+        'tags': list(set(travel_tags)),
+    }
+
+    # ==================== 3. 运动建议 ====================
+    exercise_tags = []
+    exercise_parts = []
+
+    if 15 <= rep_high <= 28 and rep_low >= 10 and fc_rain_days <= 3:
+        exercise_parts.append("温度适中，降雨较少，非常适合户外运动：跑步、骑行、球类运动皆宜。")
+        exercise_tags.extend(["跑步", "骑行", "户外运动"])
+    elif rep_high > 28 and rep_high <= 33:
+        exercise_parts.append("气温偏高，建议早晨或傍晚运动，避开正午高温时段，注意补充水分。")
+        exercise_tags.extend(["晨跑", "夜跑", "游泳"])
+    elif rep_high > 33:
+        exercise_parts.append("高温天气，建议选择室内运动（游泳、健身、瑜伽），户外运动有中暑风险。")
+        exercise_tags.extend(["游泳", "健身房", "瑜伽"])
+    elif rep_high < 10:
+        exercise_parts.append("气温偏低，户外运动前充分热身，建议选择室内运动保暖。")
+        exercise_tags.extend(["热身", "室内运动"])
+    else:
+        exercise_parts.append("天气条件一般，适当运动即可，注意根据体感调整强度。")
+        exercise_tags.append("适度运动")
+
+    if fc_rain_days >= 4:
+        exercise_parts.append("降雨较多时可选择室内运动替代。")
+        exercise_tags.append("室内优先")
+
+    categories['exercise'] = {
+        'advice': ' '.join(exercise_parts),
+        'tags': list(set(exercise_tags)),
+    }
+
+    # ==================== 4. 健康建议 ====================
+    health_tags = []
+    health_parts = []
+
+    if hist_avg_humidity > 80:
+        health_parts.append("空气湿度较高，容易滋生细菌，注意食品卫生和室内通风。")
+        health_tags.extend(["通风", "除湿"])
+    elif hist_avg_humidity < 30:
+        health_parts.append("空气干燥，注意皮肤保湿，多喝水，可使用加湿器。")
+        health_tags.extend(["保湿", "加湿器"])
+
+    if temp_range > 12:
+        health_parts.append(f"昼夜温差大（约{temp_range:.0f}°C），容易感冒，注意及时增减衣物。")
+        health_tags.append("防感冒")
+
+    if hist_rain_days > 8:
+        health_parts.append("近期多雨潮湿，关节不适者注意保暖防潮。")
+        health_tags.append("关节保暖")
+
+    if rep_high > 30:
+        health_parts.append("高温天气注意防暑降温，多饮温水，避免长时间日晒。")
+        health_tags.extend(["防中暑", "多饮水"])
+
+    if not health_parts:
+        health_parts.append("当前天气状况良好，保持正常作息和适量运动即可。")
+        health_tags.append("良好")
+
+    categories['health'] = {
+        'advice': ' '.join(health_parts),
+        'tags': list(set(health_tags)),
+    }
+
+    # ==================== 5. 天气预警 ====================
+    alert_tags = []
+    alert_parts = []
+    alert_level = 'normal'  # normal / warning / danger
+
+    if fc_max_temp >= 38:
+        alert_parts.append("⚠️ 高温红色预警：未来将出现 38°C 以上极端高温，注意防暑！")
+        alert_tags.append("高温预警")
+        alert_level = 'danger'
+    elif fc_max_temp >= 35:
+        alert_parts.append("⚠️ 高温橙色预警：未来将出现 35°C 以上高温天气。")
+        alert_tags.append("高温预警")
+        alert_level = 'warning'
+
+    if fc_min_temp <= -5:
+        alert_parts.append("⚠️ 低温预警：未来将出现 -5°C 以下极端低温，注意防寒保暖！")
+        alert_tags.append("低温预警")
+        alert_level = 'danger'
+    elif fc_min_temp <= 0:
+        alert_parts.append("⚠️ 低温预警：未来将出现零下低温，注意防寒防冻。")
+        alert_tags.append("低温预警")
+        alert_level = 'warning'
+
+    # 强降雨预警（预报中连续多天有"大雨"或"暴雨"）
+    heavy_rain = sum(1 for f in forecast_qs if f.weather_desc and ('大' in f.weather_desc or '暴' in f.weather_desc))
+    if heavy_rain >= 2:
+        alert_parts.append(f"⚠️ 强降雨预警：未来有{heavy_rain}天可能出现大雨或暴雨，注意防范。")
+        alert_tags.append("暴雨预警")
+        alert_level = 'warning'
+
+    if temp_range > 15:
+        alert_parts.append(f"⚠️ 温差预警：昼夜温差超过15°C，注意适时增减衣物。")
+        alert_tags.append("温差预警")
+        if alert_level == 'normal':
+            alert_level = 'warning'
+
+    if not alert_parts:
+        alert_parts.append("未来天气平稳，无极端天气预警。")
+        alert_tags.append("无预警")
+
+    categories['alert'] = {
+        'advice': ' '.join(alert_parts),
+        'tags': list(set(alert_tags)),
+        'level': alert_level,
+    }
+
+    # 生成综合摘要
+    all_advice_texts = [c['advice'] for c in categories.values()]
+    summary_text = ' '.join(all_advice_texts)
+
+    # 合并所有标签
+    all_tags = []
+    for c in categories.values():
+        all_tags.extend(c.get('tags', []))
+
+    # 保存到数据库
     ClothingAdvice.objects.update_or_create(
         month=f"{year}-{month:02d}",
         defaults={
-            'advice_text': advice_text,
-            'tags': list(set(tags)),  # 去重
+            'advice_text': summary_text,
+            'tags': list(set(all_tags)),
+            'advice_categories': categories,
         }
     )
 

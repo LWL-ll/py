@@ -170,6 +170,7 @@ def api_clothing_advice(request):
             'month': advice.month,
             'advice_text': advice.advice_text,
             'tags': advice.tags,
+            'categories': advice.advice_categories or {},
         }
     })
 

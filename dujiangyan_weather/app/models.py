@@ -148,12 +148,19 @@ class ClothingAdvice(models.Model):
         unique=True,
         help_text='格式：YYYY-MM'
     )
-    advice_text = models.TextField(verbose_name='建议文本', blank=True)
+    advice_text = models.TextField(verbose_name='主要建议', blank=True)
     tags = models.JSONField(
         verbose_name='推荐标签',
         default=list,
         blank=True,
         help_text='示例：["薄外套", "雨具"]'
+    )
+    # 多维度建议分类
+    advice_categories = models.JSONField(
+        verbose_name='建议分类',
+        default=dict,
+        blank=True,
+        help_text='{"clothing": {...}, "travel": {...}, "exercise": {...}, "health": {...}, "alert": {...}}'
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='更新时间')

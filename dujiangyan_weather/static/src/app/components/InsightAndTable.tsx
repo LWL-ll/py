@@ -12,11 +12,26 @@ interface WeatherRow {
   weather_type?: string;
 }
 
+interface AdviceCategory {
+  advice: string;
+  tags: string[];
+  level?: string;
+}
+
 interface AdviceData {
   month: string;
   advice_text: string;
   tags: string[];
+  categories: Record<string, AdviceCategory>;
 }
+
+const CATEGORY_META: Record<string, { emoji: string; label: string; color: string }> = {
+  clothing: { emoji: '🧥', label: '穿衣', color: '#D4A373' },
+  travel:   { emoji: '🌂', label: '出行', color: '#7FA3C1' },
+  exercise: { emoji: '🏃', label: '运动', color: '#81B29A' },
+  health:   { emoji: '🌿', label: '健康', color: '#4A6FA5' },
+  alert:    { emoji: '⚠️', label: '预警', color: '#E07A5F' },
+};
 
 const WeatherPill = ({ weather, type }: { weather: string; type: string }) => {
   const styles: Record<string, { bg: string; border: string; text: string }> = {
@@ -28,22 +43,14 @@ const WeatherPill = ({ weather, type }: { weather: string; type: string }) => {
     foggy: { bg: '#9CA3AF26', border: '#9CA3AF4D', text: '#9CA3AF' },
   };
   const style = styles[type] || styles.overcast;
-
   return (
-    <span
-      className="inline-block px-3 py-1 rounded-full text-xs font-medium"
-      style={{
-        backgroundColor: style.bg,
-        border: `1px solid ${style.border}`,
-        color: style.text,
-      }}
-    >
+    <span className="inline-block px-3 py-1 rounded-full text-xs font-medium"
+      style={{ backgroundColor: style.bg, border: `1px solid ${style.border}`, color: style.text }}>
       {weather || '-'}
     </span>
   );
 };
 
-/** 根据天气描述推断 weather_type（前端辅助） */
 function inferType(desc: string): string {
   if (!desc) return '';
   if (desc.includes('雪')) return 'snowy';
@@ -58,6 +65,7 @@ function inferType(desc: string): string {
 export default function InsightAndTable() {
   const { selectedMonth, refreshKey } = useMonth();
   const [advice, setAdvice] = useState<AdviceData | null>(null);
+  const [activeTab, setActiveTab] = useState('clothing');
   const [rows, setRows] = useState<WeatherRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -66,7 +74,7 @@ export default function InsightAndTable() {
 
   useEffect(() => {
     setLoading(true);
-    setPage(1); // 切换月份回到第一页
+    setPage(1);
     const year = selectedMonth.split('-')[0];
     const month = selectedMonth.split('-')[1];
 
@@ -75,9 +83,7 @@ export default function InsightAndTable() {
       fetch(`/api/weather/list/?year=${year}&month=${month}&page=1&page_size=${pageSize}`).then((r) => r.json()),
     ])
       .then(([adviceJson, listJson]) => {
-        if (adviceJson.code === 0) {
-          setAdvice(adviceJson.data);
-        }
+        if (adviceJson.code === 0) setAdvice(adviceJson.data);
         if (listJson.code === 0) {
           setRows(listJson.data || []);
           setTotal(listJson.total || 0);
@@ -87,7 +93,6 @@ export default function InsightAndTable() {
       .finally(() => setLoading(false));
   }, [selectedMonth, refreshKey]);
 
-  /** 翻页 */
   const loadPage = (p: number) => {
     setLoading(true);
     setPage(p);
@@ -95,57 +100,86 @@ export default function InsightAndTable() {
     const month = selectedMonth.split('-')[1];
     fetch(`/api/weather/list/?year=${year}&month=${month}&page=${p}&page_size=${pageSize}`)
       .then((res) => res.json())
-      .then((json) => {
-        if (json.code === 0) {
-          setRows(json.data || []);
-        }
-      })
+      .then((json) => { if (json.code === 0) setRows(json.data || []); })
       .catch(console.error)
       .finally(() => setLoading(false));
   };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const cats = advice?.categories || {};
+  const catKeys = Object.keys(cats);
+  const activeCat = cats[activeTab] || null;
 
   return (
     <div className="w-full flex flex-col lg:flex-row gap-6">
-      {/* Left Card - Clothing Advice (1/3 width) */}
-      <div className="flex-1 lg:max-w-[33%] bg-gradient-to-br from-[#F5F5F0] to-[#FAFAF8] border border-[#E8E8E6] rounded-[20px] p-7 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-        <h3 className="text-lg font-semibold text-[#1C1C1E] mb-4">🧥 智能穿衣建议</h3>
+      {/* Left Card - Multi-tab Advice */}
+      <div className="flex-1 lg:max-w-[33%] bg-gradient-to-br from-[#F5F5F0] to-[#FAFAF8] border border-[#E8E8E6] rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
+        <h3 className="text-lg font-semibold text-[#1C1C1E] mb-3">🤖 智能生活建议</h3>
 
         {loading && !advice ? (
           <div className="flex items-center gap-2 py-8">
             <Loader2 className="w-4 h-4 animate-spin text-[#8E8E93]" />
             <span className="text-sm text-[#8E8E93]">加载建议...</span>
           </div>
-        ) : advice ? (
-          <>
-            <div className="text-[40px] text-[#D4A373] mb-4 leading-none">"</div>
-            <p className="text-[15px] text-[#4A4A4A] leading-relaxed mb-4">{advice.advice_text}</p>
-            <div className="flex flex-wrap gap-2">
-              {(advice.tags || []).map((tag) => (
-                <span
-                  key={tag}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium"
-                  style={{ backgroundColor: '#D4A37326', color: '#D4A373' }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </>
+        ) : catKeys.length === 0 ? (
+          <div className="py-8 text-center text-sm text-[#8E8E93]">暂无建议数据，请先执行数据分析</div>
         ) : (
-          <div className="py-8 text-center text-sm text-[#8E8E93]">
-            暂无穿衣建议，请先执行数据分析
-          </div>
+          <>
+            {/* Tab bar */}
+            <div className="flex gap-1 mb-4 flex-wrap">
+              {catKeys.map((key) => {
+                const meta = CATEGORY_META[key] || { emoji: '📌', label: key, color: '#8E8E93' };
+                const isActive = key === activeTab;
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveTab(key)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: isActive ? meta.color + '20' : 'transparent',
+                      color: isActive ? meta.color : '#8E8E93',
+                      border: isActive ? `1px solid ${meta.color}40` : '1px solid transparent',
+                    }}
+                  >
+                    {meta.emoji} {meta.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Active advice content */}
+            {activeCat && (
+              <div>
+                {activeCat.level && activeCat.level !== 'normal' && (
+                  <div className={`mb-3 px-3 py-1.5 rounded-lg text-xs font-bold ${
+                    activeCat.level === 'danger' ? 'bg-[#E07A5F20] text-[#E07A5F]' : 'bg-[#D4A37320] text-[#D4A373]'
+                  }`}>
+                    {activeCat.level === 'danger' ? '🔴 需关注' : '🟡 请注意'}
+                  </div>
+                )}
+                <p className="text-[14px] text-[#4A4A4A] leading-relaxed mb-4">{activeCat.advice}</p>
+                <div className="flex flex-wrap gap-2">
+                  {(activeCat.tags || []).map((tag: string) => (
+                    <span key={tag} className="px-3 py-1 rounded-full text-xs font-medium"
+                      style={{
+                        backgroundColor: (CATEGORY_META[activeTab]?.color || '#8E8E93') + '20',
+                        color: CATEGORY_META[activeTab]?.color || '#8E8E93',
+                      }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Right Card - Weather Table (2/3 width) */}
+      {/* Right Card - Weather Table */}
       <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <div className="px-6 py-4">
           <h3 className="text-lg font-semibold text-[#1C1C1E]">📋 当月天气明细</h3>
         </div>
-
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -159,26 +193,17 @@ export default function InsightAndTable() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center">
-                    <Loader2 className="w-5 h-5 animate-spin text-[#8E8E93] inline-block" />
-                    <span className="ml-2 text-sm text-[#8E8E93]">加载数据...</span>
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="py-12 text-center">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#8E8E93] inline-block" />
+                  <span className="ml-2 text-sm text-[#8E8E93]">加载数据...</span>
+                </td></tr>
               ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="py-12 text-center text-sm text-[#8E8E93]">
-                    暂无数据，请先点击"一键爬取"
-                  </td>
-                </tr>
+                <tr><td colSpan={5} className="py-12 text-center text-sm text-[#8E8E93]">
+                  暂无数据，请先点击"一键爬取"
+                </td></tr>
               ) : (
                 rows.map((row, index) => (
-                  <tr
-                    key={row.date}
-                    className={`h-[52px] hover:bg-[#FAFAF8] transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF8]'
-                    }`}
-                  >
+                  <tr key={row.date} className={`h-[52px] hover:bg-[#FAFAF8] transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-[#FAFAF8]'}`}>
                     <td className="px-4 text-center text-sm text-[#4A4A4A]">{row.date}</td>
                     <td className="px-4 text-center text-sm text-[#4A4A4A]">{row.max_temp ?? '-'}</td>
                     <td className="px-4 text-center text-sm text-[#4A4A4A]">{row.min_temp ?? '-'}</td>
@@ -195,40 +220,23 @@ export default function InsightAndTable() {
           </table>
         </div>
 
-        {/* Pagination Bar */}
         {total > pageSize && (
           <div className="h-12 flex items-center justify-center gap-2 border-t border-[#E8E8E6]">
-            <button
-              onClick={() => page > 1 && loadPage(page - 1)}
-              disabled={page <= 1}
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30"
-            >
-              ‹
-            </button>
+            <button onClick={() => page > 1 && loadPage(page - 1)} disabled={page <= 1}
+              className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30">‹</button>
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-              // 显示当前页附近的页码
               const start = Math.max(1, Math.min(page - 2, totalPages - 4));
               const p = start + i;
               if (p > totalPages) return null;
               return (
-                <button
-                  key={p}
-                  onClick={() => loadPage(p)}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] ${
-                    p === page ? 'bg-[#4A6FA5] text-white' : 'text-[#8E8E93] hover:bg-[#FAFAF8]'
-                  }`}
-                >
+                <button key={p} onClick={() => loadPage(p)}
+                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[13px] ${p === page ? 'bg-[#4A6FA5] text-white' : 'text-[#8E8E93] hover:bg-[#FAFAF8]'}`}>
                   {p}
                 </button>
               );
             })}
-            <button
-              onClick={() => page < totalPages && loadPage(page + 1)}
-              disabled={page >= totalPages}
-              className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30"
-            >
-              ›
-            </button>
+            <button onClick={() => page < totalPages && loadPage(page + 1)} disabled={page >= totalPages}
+              className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30">›</button>
           </div>
         )}
       </div>
