@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>登录 - 校园美食</title>
+<title>登录 - 都江堰天气</title>
 {% load static %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 </head>
@@ -102,7 +102,7 @@
           <label class="remember-me">
             <input type="checkbox" id="remember-me" /> 记住我（30天）
           </label>
-          <a class="forgot-link" href="/auth/forgot-password/">忘记密码？</a>
+          <a class="forgot-link" href="/lauth/forgot-password/">忘记密码？</a>
         </div>
 
         <div class="error-msg" id="error-msg"></div>
@@ -117,7 +117,7 @@
       </form>
 
       <div class="signup-link">
-        还没有账号？<a href="/auth/register">立即注册</a>
+        还没有账号？<a href="/lauth/register">立即注册</a>
       </div>
     </div>
   </div>
@@ -182,7 +182,7 @@
     btn.querySelector('.btn-text').textContent = '登录中...';
     btn.disabled = true;
 
-    fetch('/auth/user-login/', {
+    fetch('/lauth/user-login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
       body: JSON.stringify({ email: email, password: pwd })

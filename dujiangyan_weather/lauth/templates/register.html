@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>注册 - 校园美食</title>
+<title>注册 - 都江堰天气</title>
 {% load static %}
 <link href="{% static 'css/auth.css' %}" rel="stylesheet">
 <style>
@@ -93,7 +93,7 @@
       </div>
       <div class="form-header">
         <h1>创建账号</h1>
-        <p>开启你的美食之旅</p>
+        <p>探索天气数据之美</p>
       </div>
 
       <form id="register-form" onsubmit="return false;">
@@ -167,7 +167,7 @@
       </form>
 
       <div class="signup-link">
-        已有账号？<a href="/auth/login">去登录</a>
+        已有账号？<a href="/lauth/login">去登录</a>
       </div>
     </div>
   </div>
@@ -232,7 +232,7 @@
     btn.disabled = true;
     btn.textContent = '发送中...';
 
-    fetch('/auth/send-code/', {
+    fetch('/lauth/send-code/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
       body: JSON.stringify({ email: email })
@@ -329,7 +329,7 @@
     btn.querySelector('.btn-text').textContent = '注册中...';
     btn.disabled = true;
 
-    fetch('/auth/register-user/', {
+    fetch('/lauth/register-user/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
       body: JSON.stringify({ username: username, email: email, password: pwd, verification_code: code })
