@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>注册 - 都江堰天气</title>
 {% load static %}
-<link href="{% static 'css/auth.css' %}" rel="stylesheet">
+<link href="{% static "css/auth.css" %}?v=2" rel="stylesheet">
 <style>
   /* 注册页专属：验证码按钮 */
   .btn-get-code {
@@ -173,7 +173,7 @@
   </div>
 </div>
 
-<script src="{% static 'js/auth-common.js' %}"></script>
+<script src="{% static "js/auth-common.js" %}?v=2"></script>
 <script>
 (function() {
   var usernameInput  = document.getElementById('username');
