@@ -21,6 +21,9 @@ urlpatterns = [
     path('api/weather/crawl/', views.api_crawl, name='api_crawl'),
     path('api/weather/analyze/', views.api_analyze, name='api_analyze'),
 
+    # 温度趋势（历史+预报合并）
+    path('api/weather/temperature-trend/', views.api_temperature_trend, name='api_temperature_trend'),
+
     # 40天预报 API
     path('api/weather/forecast/', views.api_forecast_list, name='api_forecast_list'),
     path('api/weather/forecast/fetch/', views.api_forecast_fetch, name='api_forecast_fetch'),

@@ -241,6 +241,55 @@ def api_analyze(request):
         })
 
 
+# ==================== 温度趋势（历史+预报） ====================
+
+def api_temperature_trend(request):
+    """获取温度趋势数据：历史月均 + 未来7天预报"""
+    from datetime import date, timedelta
+    from django.db.models.functions import TruncMonth
+
+    # 历史月均温度
+    monthly = list(
+        WeatherData.objects
+        .annotate(month_date=TruncMonth('date'))
+        .values('month_date')
+        .annotate(avg_max=Avg('max_temp'), avg_min=Avg('min_temp'))
+        .order_by('month_date')
+    )
+    hist_data = []
+    for m in monthly[-12:]:  # 近12个月
+        dt = m['month_date']
+        hist_data.append({
+            'label': f"{dt.month}月",
+            'avgMax': round(m['avg_max'], 1) if m['avg_max'] else None,
+            'avgMin': round(m['avg_min'], 1) if m['avg_min'] else None,
+            'type': 'history',
+        })
+
+    # 未来7天预报
+    today = date.today()
+    forecast_qs = ForecastData.objects.filter(
+        date__gte=today, date__lte=today + timedelta(days=7)
+    ).order_by('date')
+
+    fc_data = []
+    for f in forecast_qs:
+        fc_data.append({
+            'label': f"{f.date.month}/{f.date.day}",
+            'avgMax': float(f.day_temp) if f.day_temp else None,
+            'avgMin': float(f.night_temp) if f.night_temp else None,
+            'type': 'forecast',
+        })
+
+    return JsonResponse({
+        'code': 0,
+        'data': {
+            'history': hist_data,
+            'forecast': fc_data,
+        }
+    })
+
+
 # ==================== 40天预报 ====================
 
 def api_forecast_list(request):
