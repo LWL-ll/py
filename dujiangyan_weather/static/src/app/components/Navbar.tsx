@@ -3,12 +3,10 @@ import { CloudDownload, Loader2, User } from 'lucide-react';
 import { useMonth } from '../context/MonthContext';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
-import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const { selectedMonth, setSelectedMonth, availableMonths, loading, triggerRefresh } = useMonth();
   const { user, logout } = useAuth();
-  const [showAuth, setShowAuth] = useState(false);
   const [crawlLoading, setCrawlLoading] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [forecastLoading, setForecastLoading] = useState(false);
@@ -75,8 +73,6 @@ export default function Navbar() {
   };
 
   return (
-    <>
-    {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     <header className="w-full flex flex-wrap items-center justify-between gap-3">
       {/* Left Group */}
       <div className="flex items-center gap-4">
@@ -96,11 +92,11 @@ export default function Navbar() {
             </button>
           </div>
         ) : (
-          <button onClick={() => setShowAuth(true)}
-            className="ml-4 h-9 px-4 bg-white border border-[#E8E8E6] rounded-xl flex items-center gap-2 text-sm text-[#4A6FA5] hover:bg-[#FAFAF8] transition-colors">
+          <a href="/lauth/login/"
+            className="ml-4 h-9 px-4 bg-white border border-[#E8E8E6] rounded-xl flex items-center gap-2 text-sm text-[#4A6FA5] hover:bg-[#FAFAF8] transition-colors no-underline">
             <User className="w-4 h-4" />
             登录
-          </button>
+          </a>
         )}
       </div>
 
@@ -185,6 +181,5 @@ export default function Navbar() {
         </div>
       )}
     </header>
-    </>
   );
 }

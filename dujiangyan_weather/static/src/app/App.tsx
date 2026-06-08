@@ -1,4 +1,4 @@
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { MonthProvider } from './context/MonthContext';
@@ -6,9 +6,7 @@ import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
 import ForecastRow from './components/ForecastRow';
 import Footer from './components/Footer';
-import LoginGate from './components/LoginGate';
 
-// 重型图表组件按需加载
 const PrimaryCharts = lazy(() => import('./components/PrimaryCharts'));
 const SecondaryCharts = lazy(() => import('./components/SecondaryCharts'));
 const HeatmapChart = lazy(() => import('./components/HeatmapChart'));
@@ -25,62 +23,43 @@ function ChartSkeleton({ height = 'h-[400px]', label = '加载中...' }: { heigh
   );
 }
 
-/** 主仪表板（登录后可见） */
 function Dashboard() {
   return (
     <MonthProvider>
       <div className="min-h-screen bg-[#FAFAF8] animate-fadeIn">
         <div className="max-w-[1320px] mx-auto px-6 py-10 flex flex-col gap-6">
-          <div className="animate-fadeInUp" style={{ animationDelay: '0s' }}>
-            <Navbar />
-          </div>
-
-          <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
-            <StatsGrid />
-          </div>
-
-          <div className="animate-fadeInUp" style={{ animationDelay: '0.15s' }}>
-            <ForecastRow />
-          </div>
-
+          <div className="animate-fadeInUp" style={{ animationDelay: '0s' }}><Navbar /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}><StatsGrid /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.15s' }}><ForecastRow /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
-            <Suspense fallback={<ChartSkeleton label="加载图表..." />}>
-              <PrimaryCharts />
-            </Suspense>
+            <Suspense fallback={<ChartSkeleton label="加载图表..." />}><PrimaryCharts /></Suspense>
           </div>
-
           <div className="animate-fadeInUp" style={{ animationDelay: '0.25s' }}>
-            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载图表..." />}>
-              <SecondaryCharts />
-            </Suspense>
+            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载图表..." />}><SecondaryCharts /></Suspense>
           </div>
-
           <div className="animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
-            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载热力图..." />}>
-              <HeatmapChart />
-            </Suspense>
+            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载热力图..." />}><HeatmapChart /></Suspense>
           </div>
-
           <div className="animate-fadeInUp" style={{ animationDelay: '0.35s' }}>
-            <Suspense fallback={<ChartSkeleton height="h-[400px]" label="加载数据表..." />}>
-              <InsightAndTable />
-            </Suspense>
+            <Suspense fallback={<ChartSkeleton height="h-[400px]" label="加载数据表..." />}><InsightAndTable /></Suspense>
           </div>
-
-          <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
-            <Footer />
-          </div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}><Footer /></div>
         </div>
       </div>
     </MonthProvider>
   );
 }
 
-/** 应用根组件——检查登录状态 */
 function AppContent() {
   const { user, loading } = useAuth();
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && !user) {
+      window.location.href = '/lauth/login/';
+    }
+  }, [loading, user]);
+
+  if (loading || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#4A6FA5] to-[#7FA3C1] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -90,10 +69,6 @@ function AppContent() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    return <LoginGate />;
   }
 
   return <Dashboard />;
