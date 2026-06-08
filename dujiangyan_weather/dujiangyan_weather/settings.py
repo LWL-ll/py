@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'lauth',
     'app',
 ]
 
@@ -149,3 +150,20 @@ CORS_ALLOW_CREDENTIALS = True
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ===== 认证配置 =====
+LOGIN_URL = '/lauth/login/'
+LOGIN_REDIRECT_URL = '/'
+
+# ===== 邮件配置 =====
+# 开发环境：使用控制台后端（邮件打印到终端，不实际发送）
+# 生产环境：改为 SMTP 配置
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# 生产环境 SMTP 示例（取消注释并填入真实信息）：
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.qq.com'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+# EMAIL_HOST_USER = 'your-email@qq.com'
+# EMAIL_HOST_PASSWORD = 'your-smtp-password'
+DEFAULT_FROM_EMAIL = 'noreply@dujiangyan-weather.com'

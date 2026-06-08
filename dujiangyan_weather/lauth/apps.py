@@ -23,7 +23,7 @@ class AuthConfig(AppConfig):
         - 登录会话默认保持 5 天
     """
     # Django 应用的完整 Python 路径
-    name = 'apps.lauth'
+    name = 'lauth'
     
     # 应用在后台管理中显示的友好名称（可选）
     verbose_name = '用户认证'

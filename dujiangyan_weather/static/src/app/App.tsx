@@ -1,4 +1,5 @@
 import { Suspense, lazy } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { MonthProvider } from './context/MonthContext';
 import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
@@ -25,6 +26,7 @@ function ChartSkeleton({ height = 'h-[400px]', label = '加载中...' }: { heigh
 
 export default function App() {
   return (
+    <AuthProvider>
     <MonthProvider>
       <div className="min-h-screen bg-[#FAFAF8]">
         <div className="max-w-[1320px] mx-auto px-6 py-10 flex flex-col gap-6">
@@ -62,5 +64,6 @@ export default function App() {
         </div>
       </div>
     </MonthProvider>
+    </AuthProvider>
   );
 }

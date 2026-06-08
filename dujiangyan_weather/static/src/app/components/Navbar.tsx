@@ -1,10 +1,14 @@
 import { useState } from 'react';
-import { CloudDownload, Loader2 } from 'lucide-react';
+import { CloudDownload, Loader2, User } from 'lucide-react';
 import { useMonth } from '../context/MonthContext';
+import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
+import AuthModal from './AuthModal';
 
 export default function Navbar() {
   const { selectedMonth, setSelectedMonth, availableMonths, loading, triggerRefresh } = useMonth();
+  const { user, logout } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
   const [crawlLoading, setCrawlLoading] = useState(false);
   const [analyzeLoading, setAnalyzeLoading] = useState(false);
   const [forecastLoading, setForecastLoading] = useState(false);
@@ -71,13 +75,33 @@ export default function Navbar() {
   };
 
   return (
+    <>
+    {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     <header className="w-full flex flex-wrap items-center justify-between gap-3">
       {/* Left Group */}
-      <div className="flex flex-col gap-1">
-        <h1 className="text-[26px] font-semibold text-[#1C1C1E] tracking-[-0.01em]">
-          🌿 都江堰天气可视化系统
-        </h1>
-        <p className="text-xs text-[#8E8E93]">近12个月历史天气数据洞察</p>
+      <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-1">
+          <h1 className="text-[26px] font-semibold text-[#1C1C1E] tracking-[-0.01em]">
+            🌿 都江堰天气可视化系统
+          </h1>
+          <p className="text-xs text-[#8E8E93]">近12个月历史天气数据洞察</p>
+        </div>
+        {/* Auth area */}
+        {user ? (
+          <div className="flex items-center gap-2 ml-4">
+            <span className="text-sm text-[#4A6FA5] font-medium">👤 {user.username}</span>
+            <button onClick={logout}
+              className="text-xs text-[#8E8E93] hover:text-[#E07A5F] transition-colors">
+              退出
+            </button>
+          </div>
+        ) : (
+          <button onClick={() => setShowAuth(true)}
+            className="ml-4 h-9 px-4 bg-white border border-[#E8E8E6] rounded-xl flex items-center gap-2 text-sm text-[#4A6FA5] hover:bg-[#FAFAF8] transition-colors">
+            <User className="w-4 h-4" />
+            登录
+          </button>
+        )}
       </div>
 
       {/* Right Group */}
@@ -161,5 +185,6 @@ export default function Navbar() {
         </div>
       )}
     </header>
+    </>
   );
 }
