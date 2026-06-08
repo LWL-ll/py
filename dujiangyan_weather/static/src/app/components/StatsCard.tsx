@@ -10,7 +10,7 @@ interface StatsCardProps {
 
 export default function StatsCard({ icon: Icon, label, value, accentColor, sparklineColor }: StatsCardProps) {
   return (
-    <div className="bg-white border border-[#E8E8E6] rounded-[20px] p-7 min-w-[280px] flex-1 flex flex-col gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-shadow">
+    <div className="bg-white border border-[#E8E8E6] rounded-[20px] p-7 min-w-[280px] flex-1 flex flex-col gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover-lift">
       {/* Icon Circle */}
       <div
         className="w-10 h-10 rounded-full flex items-center justify-center"

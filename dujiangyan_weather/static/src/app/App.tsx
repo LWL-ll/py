@@ -1,21 +1,22 @@
 import { Suspense, lazy } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { Loader2 } from 'lucide-react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { MonthProvider } from './context/MonthContext';
 import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
 import ForecastRow from './components/ForecastRow';
 import Footer from './components/Footer';
+import LoginGate from './components/LoginGate';
 
-// 重型图表组件按需加载，减小首屏 bundle
+// 重型图表组件按需加载
 const PrimaryCharts = lazy(() => import('./components/PrimaryCharts'));
 const SecondaryCharts = lazy(() => import('./components/SecondaryCharts'));
 const HeatmapChart = lazy(() => import('./components/HeatmapChart'));
 const InsightAndTable = lazy(() => import('./components/InsightAndTable'));
 
-/** 懒加载组件的骨架屏占位 */
 function ChartSkeleton({ height = 'h-[400px]', label = '加载中...' }: { height?: string; label?: string }) {
   return (
-    <div className={`w-full bg-white border border-[#E8E8E6] rounded-[20px] ${height} flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.04)]`}>
+    <div className={`w-full bg-white border border-[#E8E8E6] rounded-[20px] ${height} flex items-center justify-center shadow-[0_2px_12px_rgba(0,0,0,0.04)] animate-fadeInUp`}>
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-[#4A6FA5] border-t-transparent rounded-full animate-spin"></div>
         <span className="text-sm text-[#8E8E93]">{label}</span>
@@ -24,46 +25,84 @@ function ChartSkeleton({ height = 'h-[400px]', label = '加载中...' }: { heigh
   );
 }
 
-export default function App() {
+/** 主仪表板（登录后可见） */
+function Dashboard() {
   return (
-    <AuthProvider>
     <MonthProvider>
-      <div className="min-h-screen bg-[#FAFAF8]">
+      <div className="min-h-screen bg-[#FAFAF8] animate-fadeIn">
         <div className="max-w-[1320px] mx-auto px-6 py-10 flex flex-col gap-6">
-          {/* 01-Header / 顶部控制栏（同步加载） */}
-          <Navbar />
+          <div className="animate-fadeInUp" style={{ animationDelay: '0s' }}>
+            <Navbar />
+          </div>
 
-          {/* 02-StatsGrid / 统计卡片 */}
-          <StatsGrid />
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}>
+            <StatsGrid />
+          </div>
 
-          {/* 02.5-未来天气预报 */}
-          <ForecastRow />
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.15s' }}>
+            <ForecastRow />
+          </div>
 
-          {/* 03-PrimaryCharts / 主图表区（懒加载） */}
-          <Suspense fallback={<ChartSkeleton label="加载图表..." />}>
-            <PrimaryCharts />
-          </Suspense>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+            <Suspense fallback={<ChartSkeleton label="加载图表..." />}>
+              <PrimaryCharts />
+            </Suspense>
+          </div>
 
-          {/* 04-SecondaryCharts / 次图表区（懒加载） */}
-          <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载图表..." />}>
-            <SecondaryCharts />
-          </Suspense>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.25s' }}>
+            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载图表..." />}>
+              <SecondaryCharts />
+            </Suspense>
+          </div>
 
-          {/* 05-AdvancedChart / 热力图（懒加载） */}
-          <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载热力图..." />}>
-            <HeatmapChart />
-          </Suspense>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.3s' }}>
+            <Suspense fallback={<ChartSkeleton height="h-[320px]" label="加载热力图..." />}>
+              <HeatmapChart />
+            </Suspense>
+          </div>
 
-          {/* 06-InsightTable / 建议与表格（懒加载） */}
-          <Suspense fallback={<ChartSkeleton height="h-[400px]" label="加载数据表..." />}>
-            <InsightAndTable />
-          </Suspense>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.35s' }}>
+            <Suspense fallback={<ChartSkeleton height="h-[400px]" label="加载数据表..." />}>
+              <InsightAndTable />
+            </Suspense>
+          </div>
 
-          {/* 07-Footer / 页脚 */}
-          <Footer />
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
+            <Footer />
+          </div>
         </div>
       </div>
     </MonthProvider>
+  );
+}
+
+/** 应用根组件——检查登录状态 */
+function AppContent() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#4A6FA5] to-[#7FA3C1] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="text-5xl">🌿</div>
+          <Loader2 className="w-8 h-8 animate-spin text-white" />
+          <span className="text-white/80 text-sm">加载中...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginGate />;
+  }
+
+  return <Dashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
     </AuthProvider>
   );
 }

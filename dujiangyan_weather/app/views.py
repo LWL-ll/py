@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models import Avg, Max, Min, Count
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_POST, require_GET
+from lauth.decorators import login_required
 
 from .models import WeatherData, MonthlyStats, ClothingAdvice, CrawlTask, ForecastData
 from .analyzer import (
@@ -18,9 +19,10 @@ from .analyzer import (
 
 # ==================== SPA 入口 ====================
 
+@login_required
 @ensure_csrf_cookie
 def index(request):
-    """主页面 - 返回打包后的 React SPA（同时设置 CSRF Cookie 供前端 POST 请求使用）"""
+    """主页面 - 返回打包后的 React SPA（需登录，同时设置 CSRF Cookie）"""
     index_path = settings.BASE_DIR / 'static' / 'dist' / 'index.html'
     try:
         with open(index_path, 'r', encoding='utf-8') as f:
@@ -193,6 +195,7 @@ def api_available_months(request):
 
 # ==================== 一键爬虫 ====================
 
+@login_required
 @require_POST
 def api_crawl(request):
     """触发爬虫抓取近12个月数据"""
@@ -223,6 +226,7 @@ def api_crawl(request):
 
 # ==================== 一键分析 ====================
 
+@login_required
 @require_POST
 def api_analyze(request):
     """触发数据分析：生成月度统计、气候评分与穿衣建议"""
@@ -298,6 +302,7 @@ def api_forecast_list(request):
     return JsonResponse({'code': 0, 'data': data})
 
 
+@login_required
 @require_POST
 def api_forecast_fetch(request):
     """触发爬取 40 天预报数据"""
