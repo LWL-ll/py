@@ -1,12 +1,12 @@
 /* ========== 登录/注册页面公共样式 ==========
-   与网站内容页风格统一：浅色背景 + 柔光卡片 + 蓝色点缀 */
+   与仪表板配色统一：#4A6FA5 主色 + #FAFAF8 背景 */
 
 /* --- 基础重置 --- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
   font-family: "Microsoft YaHei", "PingFang SC", -apple-system, sans-serif;
-  background: #e3f2fd;
+  background: #FAFAF8;
   overflow: hidden;
   height: 100vh;
 }
@@ -18,14 +18,14 @@ body {
   height: 100vh;
 }
 
-/* ========== 左侧面板：柔光蓝 + 动画角色 ========== */
+/* ========== 左侧面板：仪表板风格渐变 ========== */
 .left-panel {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(160deg, #e3f2fd 0%, #bbdefb 40%, #e8eaf6 100%);
+  background: linear-gradient(160deg, #FAFAF8 0%, #7FA3C130 40%, #4A6FA520 100%);
   padding: 40px 48px;
   overflow: hidden;
 }
@@ -68,20 +68,20 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f7fa;
+  background: #FAFAF8;
   padding: 40px;
 }
 
 .form-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 40px 36px;
-  box-shadow: 0 8px 32px rgba(25, 118, 210, 0.1), 0 2px 8px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 8px 32px rgba(74, 111, 165, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid #E8E8E6;
 }
 
 /* --- 图标 --- */
@@ -146,8 +146,8 @@ body {
 }
 
 .form-group input:focus {
-  border-color: #1976d2;
-  box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.08);
+  border-color: #4A6FA5;
+  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.08);
 }
 
 .form-group input::placeholder {
@@ -173,7 +173,7 @@ body {
   transition: color 0.2s;
 }
 
-.toggle-password:hover { color: #1976d2; }
+.toggle-password:hover { color: #4A6FA5; }
 
 /* --- 记住我 & 忘记密码 --- */
 .form-options {
@@ -195,13 +195,13 @@ body {
 .remember-me input[type="checkbox"] {
   width: 16px;
   height: 16px;
-  accent-color: #1976d2;
+  accent-color: #4A6FA5;
   cursor: pointer;
 }
 
 .forgot-link {
   font-size: 13px;
-  color: #1976d2;
+  color: #4A6FA5;
   text-decoration: none;
   font-weight: 500;
   cursor: pointer;
@@ -217,7 +217,7 @@ body {
   height: 50px;
   border-radius: 25px;
   border: none;
-  background: #1976d2;
+  background: #4A6FA5;
   color: #fff;
   font-size: 16px;
   font-weight: 600;
@@ -226,12 +226,12 @@ body {
   overflow: hidden;
   margin-bottom: 14px;
   transition: all 0.25s;
-  box-shadow: 0 4px 14px rgba(25, 118, 210, 0.25);
+  box-shadow: 0 4px 14px rgba(74, 111, 165, 0.25);
 }
 
 .btn-login:hover {
-  background: #1565c0;
-  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+  background: #3D5A8A;
+  box-shadow: 0 6px 20px rgba(74, 111, 165, 0.4);
   transform: translateY(-1px);
 }
 
@@ -251,7 +251,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #1565c0;
+  background: #3D5A8A;
   color: #fff;
   opacity: 0;
   transition: all 0.3s;
@@ -276,7 +276,7 @@ body {
 }
 
 .signup-link a {
-  color: #1976d2;
+  color: #4A6FA5;
   font-weight: 600;
   text-decoration: none;
 }
