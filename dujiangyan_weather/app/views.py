@@ -420,11 +420,18 @@ def api_today_weather(request):
         if not result['source'] or result['source'] == 'none':
             result['source'] = 'forecast'
 
-    # 3. 若无今日湿度，取最近一条历史记录
-    if result['humidity'] is None:
+    # 3. 若无今日数据，从最近一条历史记录兜底
+    if not result['wind_direction'] or result['humidity'] is None:
         latest_hist = WeatherData.objects.order_by('-date').first()
         if latest_hist:
-            result['humidity'] = latest_hist.humidity
+            if not result['wind_direction']:
+                wind_raw = latest_hist.wind_direction or ''
+                wind_match = re.match(r'^(.+?)(\d+级.*)?$', wind_raw)
+                if wind_match:
+                    result['wind_direction'] = wind_match.group(1).strip()
+                    result['wind_level'] = wind_match.group(2) or ''
+            if result['humidity'] is None:
+                result['humidity'] = latest_hist.humidity
 
     # 4. 当月降雨天数
     stats = MonthlyStats.objects.filter(year=today.year, month=today.month).first()
