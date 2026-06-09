@@ -319,3 +319,44 @@ def api_forecast_fetch(request):
             'message': f'预报爬取异常: {str(e)}',
             'data': {}
         })
+
+
+# ==================== AI 智能模块 ====================
+
+@require_POST
+def api_ai_advice(request):
+    """AI 生成智能生活建议"""
+    try:
+        import json as json_module
+        body = json_module.loads(request.body)
+        month = body.get('month', '')
+
+        from app.ai_advisor import generate_ai_advice
+        result = generate_ai_advice(month)
+
+        if result:
+            return JsonResponse({'code': 0, 'data': result})
+        else:
+            return JsonResponse({'code': 1, 'message': 'AI 生成失败'})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'message': str(e)})
+
+
+@require_POST
+def api_ai_chat(request):
+    """AI 天气问答（返回流式或普通文本）"""
+    try:
+        import json as json_module
+        body = json_module.loads(request.body)
+        question = body.get('question', '').strip()
+        month = body.get('month', '')
+
+        if not question:
+            return JsonResponse({'code': 1, 'message': '请输入问题'})
+
+        from app.ai_advisor import chat_about_weather
+        answer = chat_about_weather(question, month)
+
+        return JsonResponse({'code': 0, 'data': {'answer': answer}})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'message': str(e)})

@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
 import ForecastRow from './components/ForecastRow';
 import Footer from './components/Footer';
+import AIChat from './components/AIChat';
 
 const PrimaryCharts = lazy(() => import('./components/PrimaryCharts'));
 const SecondaryCharts = lazy(() => import('./components/SecondaryCharts'));
@@ -45,6 +46,7 @@ function Dashboard() {
           </div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}><Footer /></div>
         </div>
+        <AIChat />
       </div>
     </MonthProvider>
   );

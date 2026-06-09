@@ -27,4 +27,8 @@ urlpatterns = [
     # 40天预报 API
     path('api/weather/forecast/', views.api_forecast_list, name='api_forecast_list'),
     path('api/weather/forecast/fetch/', views.api_forecast_fetch, name='api_forecast_fetch'),
+
+    # AI 智能模块
+    path('api/weather/ai-advice/', views.api_ai_advice, name='api_ai_advice'),
+    path('api/weather/ai-chat/', views.api_ai_chat, name='api_ai_chat'),
 ]
