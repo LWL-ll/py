@@ -119,8 +119,8 @@ export default function CalendarView() {
                   }`}
                   onMouseEnter={(e) => {
                     if (day.is_current_month && day.weather_desc) {
-                      const rect = (e.target as HTMLElement).closest('.aspect-square')?.getBoundingClientRect();
-                      if (rect) setTooltip({ day, x: rect.left + rect.width / 2, y: rect.top - 8 });
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setTooltip({ day, x: rect.left + rect.width / 2, y: rect.top });
                     }
                   }}
                   onMouseLeave={() => setTooltip(null)}
