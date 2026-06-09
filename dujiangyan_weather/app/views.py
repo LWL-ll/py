@@ -362,6 +362,61 @@ def api_ai_chat(request):
         return JsonResponse({'code': 500, 'message': str(e)})
 
 
+# ==================== 今日天气详情 ====================
+
+def api_today_weather(request):
+    """获取今日天气详情（温度/湿度/风力/空气质量/体感）"""
+    from datetime import date
+
+    today = date.today()
+    result = {
+        'date': today.isoformat(),
+        'max_temp': None,
+        'min_temp': None,
+        'weather_desc': '',
+        'weather_type': '',
+        'humidity': None,
+        'wind_direction': '',
+        'wind_level': '',
+        'air_quality_score': None,
+        'temp_comfort_score': None,
+        'source': 'none',
+    }
+
+    # 1. 尝试从历史数据获取今天的记录
+    hist = WeatherData.objects.filter(date=today).first()
+    if hist:
+        result.update({
+            'max_temp': hist.max_temp,
+            'min_temp': hist.min_temp,
+            'weather_desc': hist.weather_desc,
+            'weather_type': hist.weather_type,
+            'humidity': hist.humidity,
+            'wind_direction': hist.wind_direction,
+            'wind_level': hist.wind_level,
+            'source': 'history',
+        })
+
+    # 2. 如果历史数据没有温度，从预报补充
+    fc = ForecastData.objects.filter(date=today).first()
+    if fc:
+        if result['max_temp'] is None:
+            result['max_temp'] = float(fc.day_temp) if fc.day_temp else None
+        if result['min_temp'] is None:
+            result['min_temp'] = float(fc.night_temp) if fc.night_temp else None
+        if not result['weather_desc']:
+            result['weather_desc'] = fc.weather_desc
+        if not result['source'] or result['source'] == 'none':
+            result['source'] = 'forecast'
+
+    # 3. 当月气候评分（空气质量和舒适度）
+    stats = MonthlyStats.objects.filter(year=today.year, month=today.month).first()
+    if stats:
+        result['air_quality_score'] = stats.air_quality_score
+        result['temp_comfort_score'] = stats.temp_comfort_score
+
+    return JsonResponse({'code': 0, 'data': result})
+
 # ==================== 天气月历 ====================
 
 def api_weather_calendar(request):
@@ -450,7 +505,7 @@ def api_ai_diary(request):
         diary = _call_ai([
             {'role': 'system', 'content': '你是一个有文学素养的天气记录者，用温暖细腻的笔触记录天气。'},
             {'role': 'user', 'content': prompt},
-        ], max_tokens=2000, temperature=0.8)
+        ], temperature=0.8)
 
         return JsonResponse({'code': 0, 'data': {'diary': diary}})
     except Exception as e:

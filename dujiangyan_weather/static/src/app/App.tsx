@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { MonthProvider } from './context/MonthContext';
 import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
+import TodayWeather from './components/TodayWeather';
 import ForecastRow from './components/ForecastRow';
 import WeatherDiary from './components/WeatherDiary';
 import CalendarView from './components/CalendarView';
@@ -32,6 +33,7 @@ function Dashboard() {
       <div className="min-h-screen bg-[#FAFAF8] animate-fadeIn">
         <div className="max-w-[1320px] mx-auto px-6 py-10 flex flex-col gap-6">
           <div className="animate-fadeInUp" style={{ animationDelay: '0s' }}><Navbar /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.05s' }}><TodayWeather /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}><StatsGrid /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.15s' }}><ForecastRow /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.18s' }}><WeatherDiary /></div>

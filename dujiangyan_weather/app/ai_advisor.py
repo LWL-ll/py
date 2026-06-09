@@ -18,7 +18,7 @@ API_KEY = 'sk-cfrylw3t467fpab7x31wzia48jht5y0ch63sl0ex8145k4en'
 MODEL = 'mimo-v2.5-pro'
 
 
-def _call_ai(messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+def _call_ai(messages: list, max_tokens: int = 8000, temperature: float = 0.7) -> str:
     """调用 AI API，返回文本回复"""
     try:
         resp = requests.post(
@@ -140,7 +140,7 @@ def generate_ai_advice(month_str: str = None) -> dict:
         resp_text = _call_ai([
             {'role': 'system', 'content': '你是一个专业的生活顾问，输出严格的 JSON，不输出其他内容。'},
             {'role': 'user', 'content': prompt},
-        ], max_tokens=2000, temperature=0.5)
+        ], temperature=0.5)
 
         # 提取 JSON（可能在 ```json ... ``` 中）
         if '```json' in resp_text:
@@ -183,4 +183,4 @@ def chat_about_weather(question: str, month_str: str = None) -> str:
     return _call_ai([
         {'role': 'system', 'content': system_prompt},
         {'role': 'user', 'content': question},
-    ], max_tokens=500, temperature=0.7)
+    ], temperature=0.7)
