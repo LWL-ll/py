@@ -89,9 +89,9 @@ def api_summary(request):
     avg_max = WeatherData.objects.aggregate(avg=Avg('max_temp'))['avg']
     avg_min = WeatherData.objects.aggregate(avg=Avg('min_temp'))['avg']
 
-    # 计算晴天/雨天概率（基于 weather_type）
-    sunny_days = WeatherData.objects.filter(weather_type='sunny').count()
-    rainy_days = WeatherData.objects.filter(weather_type='rainy').count()
+    # 计算晴天/雨天概率（按天气描述含关键词统计，复合天气如"多云~晴"同时计入）
+    sunny_days = WeatherData.objects.filter(weather_desc__icontains='晴').count()
+    rainy_days = WeatherData.objects.filter(weather_desc__icontains='雨').count()
     sunny_prob = round(sunny_days / total_days * 100, 1) if total_days else 0
     rainy_prob = round(rainy_days / total_days * 100, 1) if total_days else 0
 
