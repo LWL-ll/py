@@ -170,6 +170,7 @@ def chat_about_weather(question: str, month_str: str = None) -> str:
 3. 如果问题超出天气范围，礼貌说明你只能回答天气相关问题
 4. 回答简洁，3句话以内，除非用户要求详细
 5. 都江堰是四川成都的县级市，有著名的都江堰水利工程和青城山
+6. 禁止使用任何 emoji 表情符号
 
 当前天气数据：
 {context}"""

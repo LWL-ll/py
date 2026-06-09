@@ -7,11 +7,22 @@ interface Msg {
   text: string;
 }
 
+const MAX_ROUNDS = 10; // 保留最近 10 轮对话（20 条消息）
+
+/** 解析简单 Markdown：**粗体**、换行 */
+function renderMarkdown(text: string): string {
+  // **粗体**
+  let html = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  // 换行
+  html = html.replace(/\n/g, '<br/>');
+  return html;
+}
+
 export default function AIChat() {
   const { selectedMonth } = useMonth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'ai', text: '你好！我是小堰，都江堰天气助手。问我任何天气相关问题吧～' },
+    { role: 'ai', text: '你好！我是小堰，都江堰天气助手。问我任何天气相关问题吧~' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -25,7 +36,13 @@ export default function AIChat() {
     const q = input.trim();
     if (!q || loading) return;
 
-    setMessages((prev) => [...prev, { role: 'user', text: q }]);
+    const userMsg: Msg = { role: 'user', text: q };
+    setMessages((prev) => {
+      const updated = [...prev, userMsg];
+      // 保留最近 MAX_ROUNDS*2 条 + 欢迎消息
+      const maxLen = MAX_ROUNDS * 2 + 1;
+      return updated.length > maxLen ? [updated[0], ...updated.slice(-maxLen + 1)] : updated;
+    });
     setInput('');
     setLoading(true);
 
@@ -37,7 +54,12 @@ export default function AIChat() {
       });
       const json = await res.json();
       const answer = json.data?.answer || '抱歉，AI 暂时无法回答，请稍后再试。';
-      setMessages((prev) => [...prev, { role: 'ai', text: answer }]);
+      const aiMsg: Msg = { role: 'ai', text: answer };
+      setMessages((prev) => {
+        const updated = [...prev, aiMsg];
+        const maxLen = MAX_ROUNDS * 2 + 1;
+        return updated.length > maxLen ? [updated[0], ...updated.slice(-maxLen + 1)] : updated;
+      });
     } catch {
       setMessages((prev) => [...prev, { role: 'ai', text: '网络错误，请稍后再试。' }]);
     } finally {
@@ -54,7 +76,6 @@ export default function AIChat() {
 
   return (
     <>
-      {/* 浮动按钮 */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
@@ -64,30 +85,27 @@ export default function AIChat() {
         </button>
       )}
 
-      {/* 聊天窗口 */}
       {open && (
         <div className="fixed bottom-6 right-6 z-50 w-[380px] max-w-[90vw] h-[520px] max-h-[70vh] bg-white rounded-2xl shadow-2xl border border-[#E8E8E6] flex flex-col animate-fadeInUp overflow-hidden">
-          {/* Header */}
           <div className="h-14 px-4 bg-gradient-to-r from-[#4A6FA5] to-[#7FA3C1] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-white" />
-              <span className="text-white font-medium text-sm">小堰 · AI 天气助手</span>
+              <span className="text-white font-medium text-sm">小堰 - AI 天气助手</span>
             </div>
             <button onClick={() => setOpen(false)} className="p-1 rounded-lg hover:bg-white/20 transition-colors">
               <X className="w-5 h-5 text-white" />
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 bg-[#FAFAF8]">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+                <div className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                   msg.role === 'user'
                     ? 'bg-[#4A6FA5] text-white rounded-br-md'
                     : 'bg-white border border-[#E8E8E6] text-[#4A4A4A] rounded-bl-md'
                 }`}>
-                  {msg.text}
+                  <span dangerouslySetInnerHTML={{ __html: renderMarkdown(msg.text) }} />
                 </div>
               </div>
             ))}
@@ -102,7 +120,6 @@ export default function AIChat() {
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
           <div className="p-3 border-t border-[#E8E8E6] flex gap-2 bg-white shrink-0">
             <input
               value={input}
@@ -125,7 +142,6 @@ export default function AIChat() {
   );
 }
 
-/** 读取 CSRF Cookie */
 function getCsrfToken(): string {
   const match = document.cookie.match(/csrftoken=([^;]+)/);
   return match ? match[1] : '';
