@@ -175,14 +175,14 @@ export default function InsightAndTable() {
         )}
       </div>
 
-      {/* Right Card - Weather Table */}
-      <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-        <div className="px-6 py-4">
+      {/* Right Card - Weather Table（固定高度+滚动） */}
+      <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] max-h-[420px] flex flex-col">
+        <div className="px-6 py-4 shrink-0">
           <h3 className="text-lg font-semibold text-[#1C1C1E]">当月天气明细</h3>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-auto flex-1">
           <table className="w-full">
-            <thead>
+            <thead className="sticky top-0 z-10">
               <tr className="bg-[#F5F5F0] h-12">
                 <th className="px-4 text-center text-[13px] font-semibold text-[#6E6E73] uppercase tracking-wide">日期</th>
                 <th className="px-4 text-center text-[13px] font-semibold text-[#6E6E73] uppercase tracking-wide">最高温(°C)</th>
@@ -221,7 +221,7 @@ export default function InsightAndTable() {
         </div>
 
         {total > pageSize && (
-          <div className="h-12 flex items-center justify-center gap-2 border-t border-[#E8E8E6]">
+          <div className="h-12 flex items-center justify-center gap-2 border-t border-[#E8E8E6] shrink-0">
             <button onClick={() => page > 1 && loadPage(page - 1)} disabled={page <= 1}
               className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30">‹</button>
             {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {

@@ -154,44 +154,42 @@ export default function PrimaryCharts() {
         </div>
       </div>
 
-      {/* Right Chart - Weather Distribution */}
-      <div className="flex-1 bg-white border border-[#E8E8E6] rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-        <div className="flex items-center gap-2 mb-4">
+      {/* Right Chart - Weather Distribution（固定高度+滚动） */}
+      <div className="flex-1 bg-white border border-[#E8E8E6] rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)] max-h-[420px] flex flex-col">
+        <div className="flex items-center gap-2 mb-4 shrink-0">
           <span className="w-2 h-2 rounded-full bg-[#4A6FA5]"></span>
           <h3 className="text-lg font-semibold text-[#1C1C1E]">天气状况分布</h3>
         </div>
-        <div className="flex flex-col items-center gap-4">
-          {pieData.length === 0 ? (
-            <div className="h-[200px] flex items-center justify-center text-sm text-[#8E8E93]">暂无数据</div>
-          ) : (
-            <>
-              <div className="relative w-[200px] h-[200px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90}
-                      paddingAngle={2} dataKey="value">
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-lg font-bold text-[#1C1C1E]">{totalDays}天</span>
+        {pieData.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-sm text-[#8E8E93]">暂无数据</div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center gap-3 overflow-hidden">
+            <div className="relative w-[180px] h-[180px] shrink-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={85}
+                    paddingAngle={2} dataKey="value">
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-base font-bold text-[#1C1C1E]">{totalDays}天</span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1.5 w-full overflow-y-auto flex-1 pr-1">
+              {pieData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2 shrink-0">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
+                  <span className="text-[12px] text-[#6E6E73]">{item.name}</span>
+                  <span className="ml-auto text-[12px] font-medium text-[#1C1C1E]">{item.value}</span>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2 w-full">
-                {pieData.map((item) => (
-                  <div key={item.name} className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }}></div>
-                    <span className="text-[13px] text-[#6E6E73]">{item.name}</span>
-                    <span className="ml-auto text-[13px] font-medium text-[#1C1C1E]">{item.value}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
