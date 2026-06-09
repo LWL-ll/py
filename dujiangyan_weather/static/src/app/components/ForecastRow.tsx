@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CloudSun, CloudRain, CloudSnow, Cloud, CloudFog, Sun } from 'lucide-react';
 import { useMonth } from '../context/MonthContext';
 
 interface ForecastItem {
@@ -10,16 +10,17 @@ interface ForecastItem {
   week: string;
 }
 
-/** 天气→emoji 映射 */
-function weatherEmoji(desc: string): string {
-  if (!desc) return '🌈';
-  if (desc.includes('雨')) return '🌧️';
-  if (desc.includes('雪')) return '❄️';
-  if (desc.includes('多云')) return '⛅';
-  if (desc.includes('阴')) return '☁️';
-  if (desc.includes('晴')) return '☀️';
-  if (desc.includes('雾') || desc.includes('霾')) return '🌫️';
-  return '🌤️';
+/** 天气→图标映射 */
+function WeatherIcon({ desc }: { desc: string }) {
+  const cls = 'w-7 h-7';
+  if (!desc) return <CloudSun className={cls} />;
+  if (desc.includes('雨')) return <CloudRain className={`${cls} text-[#7FA3C1]`} />;
+  if (desc.includes('雪')) return <CloudSnow className={`${cls} text-[#B8C5D6]`} />;
+  if (desc.includes('多云')) return <Cloud className={`${cls} text-[#A8A29E]`} />;
+  if (desc.includes('阴')) return <Cloud className={`${cls} text-[#78716C]`} />;
+  if (desc.includes('晴')) return <Sun className={`${cls} text-[#D4A373]`} />;
+  if (desc.includes('雾') || desc.includes('霾')) return <CloudFog className={`${cls} text-[#9CA3AF]`} />;
+  return <CloudSun className={cls} />;
 }
 
 export default function ForecastRow() {
@@ -33,7 +34,6 @@ export default function ForecastRow() {
       .then((res) => res.json())
       .then((json) => {
         if (json.code === 0 && json.data?.length) {
-          // 只取前 8 天
           setForecast(json.data.slice(0, 8));
         }
       })
@@ -50,15 +50,11 @@ export default function ForecastRow() {
     );
   }
 
-  if (forecast.length === 0) {
-    return null; // 无数据时不显示
-  }
+  if (forecast.length === 0) return null;
 
   return (
     <div className="w-full bg-white border border-[#E8E8E6] rounded-[20px] p-5 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-      <h3 className="text-sm font-semibold text-[#1C1C1E] mb-3">
-        📅 未来天气预报
-      </h3>
+      <h3 className="text-sm font-semibold text-[#1C1C1E] mb-3">未来天气预报</h3>
       <div className="flex gap-3 overflow-x-auto pb-1">
         {forecast.map((item) => (
           <div
@@ -66,7 +62,7 @@ export default function ForecastRow() {
             className="flex-shrink-0 w-[100px] bg-[#FAFAF8] rounded-xl p-3 flex flex-col items-center gap-1 hover:shadow-md transition-shadow"
           >
             <span className="text-[11px] text-[#8E8E93]">{item.week || item.date.slice(5)}</span>
-            <span className="text-2xl">{weatherEmoji(item.weather_desc)}</span>
+            <WeatherIcon desc={item.weather_desc} />
             <span className="text-[11px] text-[#6E6E73] truncate w-full text-center">
               {item.weather_desc}
             </span>

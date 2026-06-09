@@ -78,14 +78,14 @@ export default function Navbar() {
       <div className="flex items-center gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-[20px] sm:text-[26px] font-semibold text-[#1C1C1E] tracking-[-0.01em]">
-            🌿 都江堰天气可视化
+            都江堰天气可视化
           </h1>
           <p className="text-[11px] sm:text-xs text-[#8E8E93]">近12个月历史天气数据洞察</p>
         </div>
         {/* Auth area */}
         {user ? (
           <div className="flex items-center gap-2 ml-4">
-            <span className="text-sm text-[#4A6FA5] font-medium">👤 {user.username}</span>
+            <span className="text-sm text-[#4A6FA5] font-medium flex items-center gap-1"><User className="w-4 h-4" />{user.username}</span>
             <button onClick={logout}
               className="text-xs text-[#8E8E93] hover:text-[#E07A5F] transition-colors">
               退出

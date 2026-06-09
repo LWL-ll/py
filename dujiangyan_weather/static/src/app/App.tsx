@@ -65,7 +65,6 @@ function AppContent() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#4A6FA5] to-[#7FA3C1] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="text-5xl">🌿</div>
           <Loader2 className="w-8 h-8 animate-spin text-white" />
           <span className="text-white/80 text-sm">加载中...</span>
         </div>

@@ -25,12 +25,12 @@ interface AdviceData {
   categories: Record<string, AdviceCategory>;
 }
 
-const CATEGORY_META: Record<string, { emoji: string; label: string; color: string }> = {
-  clothing: { emoji: '🧥', label: '穿衣', color: '#D4A373' },
-  travel:   { emoji: '🌂', label: '出行', color: '#7FA3C1' },
-  exercise: { emoji: '🏃', label: '运动', color: '#81B29A' },
-  health:   { emoji: '🌿', label: '健康', color: '#4A6FA5' },
-  alert:    { emoji: '⚠️', label: '预警', color: '#E07A5F' },
+const CATEGORY_META: Record<string, { label: string; color: string }> = {
+  clothing: { label: '穿衣', color: '#D4A373' },
+  travel:   { label: '出行', color: '#7FA3C1' },
+  exercise: { label: '运动', color: '#81B29A' },
+  health:   { label: '健康', color: '#4A6FA5' },
+  alert:    { label: '预警', color: '#E07A5F' },
 };
 
 const WeatherPill = ({ weather, type }: { weather: string; type: string }) => {
@@ -114,7 +114,7 @@ export default function InsightAndTable() {
     <div className="w-full flex flex-col lg:flex-row gap-6">
       {/* Left Card - Multi-tab Advice */}
       <div className="flex-1 lg:max-w-[33%] bg-gradient-to-br from-[#F5F5F0] to-[#FAFAF8] border border-[#E8E8E6] rounded-[20px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
-        <h3 className="text-lg font-semibold text-[#1C1C1E] mb-3">🤖 智能生活建议</h3>
+        <h3 className="text-lg font-semibold text-[#1C1C1E] mb-3">智能生活建议</h3>
 
         {loading && !advice ? (
           <div className="flex items-center gap-2 py-8">
@@ -128,7 +128,7 @@ export default function InsightAndTable() {
             {/* Tab bar */}
             <div className="flex gap-1 mb-4 flex-wrap">
               {catKeys.map((key) => {
-                const meta = CATEGORY_META[key] || { emoji: '📌', label: key, color: '#8E8E93' };
+                const meta = CATEGORY_META[key] || { label: key, color: '#8E8E93' };
                 const isActive = key === activeTab;
                 return (
                   <button
@@ -141,7 +141,7 @@ export default function InsightAndTable() {
                       border: isActive ? `1px solid ${meta.color}40` : '1px solid transparent',
                     }}
                   >
-                    {meta.emoji} {meta.label}
+                    {meta.label}
                   </button>
                 );
               })}
@@ -154,7 +154,7 @@ export default function InsightAndTable() {
                   <div className={`mb-3 px-3 py-1.5 rounded-lg text-xs font-bold ${
                     activeCat.level === 'danger' ? 'bg-[#E07A5F20] text-[#E07A5F]' : 'bg-[#D4A37320] text-[#D4A373]'
                   }`}>
-                    {activeCat.level === 'danger' ? '🔴 需关注' : '🟡 请注意'}
+                    {activeCat.level === 'danger' ? '需关注' : '请注意'}
                   </div>
                 )}
                 <p className="text-[14px] text-[#4A4A4A] leading-relaxed mb-4">{activeCat.advice}</p>
@@ -178,7 +178,7 @@ export default function InsightAndTable() {
       {/* Right Card - Weather Table */}
       <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)]">
         <div className="px-6 py-4">
-          <h3 className="text-lg font-semibold text-[#1C1C1E]">📋 当月天气明细</h3>
+          <h3 className="text-lg font-semibold text-[#1C1C1E]">当月天气明细</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">

@@ -11,7 +11,7 @@ export default function AIChat() {
   const { selectedMonth } = useMonth();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
-    { role: 'ai', text: '你好！我是小堰 🌿\n都江堰天气助手。\n问我任何天气相关问题吧～' },
+    { role: 'ai', text: '你好！我是小堰，都江堰天气助手。问我任何天气相关问题吧～' },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
