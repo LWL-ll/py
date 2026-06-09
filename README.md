@@ -1,4 +1,4 @@
-# 🌿 都江堰天气数据分析平台
+# 都江堰天气数据分析平台
 
 基于 Django + React 的天气数据可视化分析系统，支持历史天气爬取、数据清洗、月度统计和智能穿衣建议。
 
@@ -8,7 +8,7 @@
 
 | 层次 | 技术 | 版本 |
 |------|------|------|
-| 后端框架 | Django | 6.0.x |
+| 后端框架 | Django | 4.2+ |
 | 数据库 | MySQL | 8.0+ |
 | 前端框架 | React | 18.x |
 | 构建工具 | Vite | 6.x |
@@ -99,8 +99,8 @@ dujiangyan_weather/
 │   └── wsgi.py                       # 生产部署入口
 │
 ├── app/                              # 核心应用
-│   ├── models.py                     # 数据模型 (4 张表)
-│   ├── views.py                      # 视图函数 (11 个 API)
+│   ├── models.py                     # 数据模型 (5 张表)
+│   ├── views.py                      # 视图函数 (15 个 API)
 │   ├── urls.py                       # 路由配置
 │   ├── admin.py                      # 后台管理
 │   ├── crawler.py                    # 爬虫模块
@@ -108,6 +108,12 @@ dujiangyan_weather/
 │   ├── data_cleaner.py               # 数据清洗模块
 │   ├── migrations/                   # 数据库迁移
 │   └── management/commands/          # 管理命令
+│
+├── lauth/                            # 用户认证应用
+│   ├── models.py                     # 验证码模型
+│   ├── views.py                      # 登录/注册/找回密码 API
+│   ├── urls.py                       # 认证路由
+│   └── decorators.py                 # 登录验证装饰器
 │
 └── static/                           # 前端 (React)
     ├── index.html                    # 开发入口
@@ -146,6 +152,7 @@ dujiangyan_weather/
 | GET | `/api/weather/summary/` | - | 数据概览（总天数、平均温、晴雨概率） |
 | GET | `/api/weather/monthly/` | `year`, `month` | 月度统计数据 |
 | GET | `/api/weather/months/` | - | 可用月份列表 |
+| GET | `/api/weather/forecast/` | - | 40 天预报数据列表 |
 
 ### 图表数据
 
@@ -155,6 +162,7 @@ dujiangyan_weather/
 | GET | `/api/weather/climate-score/` | `year`, `month` | 气候综合评分（雷达图） |
 | GET | `/api/weather/heatmap/` | `year` | 温度热力分布（热力图） |
 | GET | `/api/weather/advice/` | `month` | 智能穿衣建议 |
+| GET | `/api/weather/temperature-trend/` | - | 历史月均 + 未来 7 天预报 |
 
 ### 操作
 
@@ -162,6 +170,20 @@ dujiangyan_weather/
 |------|------|------|
 | POST | `/api/weather/crawl/` | 触发爬虫抓取近 12 个月数据 |
 | POST | `/api/weather/analyze/` | 生成月度统计 + 气候评分 + 穿衣建议 |
+| POST | `/api/weather/forecast/fetch/` | 触发爬取 40 天预报数据 |
+
+### 用户认证
+
+| 方法 | 路径 | 请求体 | 说明 |
+|------|------|--------|------|
+| POST | `/lauth/send-code/` | `{email}` | 发送注册验证码 |
+| POST | `/lauth/verify-code/` | `{email, code}` | 验证验证码 |
+| POST | `/lauth/register-user/` | `{username, email, password, verification_code}` | 用户注册 |
+| POST | `/lauth/user-login/` | `{email, password}` | 用户登录 |
+| POST | `/lauth/user-logout/` | - | 退出登录 |
+| POST | `/lauth/send-reset-code/` | `{email}` | 发送密码重置验证码 |
+| POST | `/lauth/reset-password/` | `{email, code, new_password}` | 重置密码 |
+| GET | `/lauth/check-login/` | - | 检查登录状态 |
 
 ---
 
@@ -199,6 +221,7 @@ dujiangyan_weather/
 | month | CharField | 月份 `YYYY-MM`（唯一） |
 | advice_text | TextField | 建议文本 |
 | tags | JSONField | 推荐标签 `["薄外套","雨具"]` |
+| advice_categories | JSONField | 分类建议（穿衣/出行/运动/健康/预警） |
 
 ### CrawlTask（爬虫任务）
 
@@ -208,6 +231,25 @@ dujiangyan_weather/
 | status | CharField | pending / running / success / failed |
 | records_count | IntegerField | 抓取条数 |
 | error_message | TextField | 错误信息 |
+
+### ForecastData（40 天预报）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| date | DateField | 日期（唯一） |
+| day_temp | IntegerField | 白天气温(℃) |
+| night_temp | IntegerField | 夜间气温(℃) |
+| weather_desc | CharField | 天气状况 |
+| week | CharField | 星期 |
+
+### VerificationCode（验证码）
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| email | EmailField | 邮箱地址 |
+| code | CharField | 6 位数字验证码 |
+| is_used | BooleanField | 是否已使用 |
+| created_at | DateTimeField | 创建时间（有效期 5 分钟） |
 
 ---
 
@@ -260,6 +302,18 @@ MonthContext (共享月份状态)
 | 空气质量 | 晴天比例(60%) + 降雨适中度(40%) |
 | 降水适中度 | 偏离最佳值 6 天/月 越远分数越低 |
 
+### 穿衣建议生成逻辑
+
+综合历史数据（近 60 天）与预报数据（未来 14 天），生成 5 类建议：
+
+| 类别 | 依据 | 输出 |
+|------|------|------|
+| 穿衣 | 代表最高/最低温、昼夜温差 | 衣物推荐 + 标签 |
+| 出行 | 预报降雨天数、极端温度 | 出行提示 + 装备建议 |
+| 运动 | 温度区间 + 降雨频率 | 运动类型推荐 |
+| 健康 | 湿度、温差、降雨 | 健康注意事项 |
+| 预警 | 极端高温/低温/暴雨/大温差 | 预警等级（normal/warning/danger） |
+
 ### 爬虫反爬策略
 
 - 完整浏览器请求头（User-Agent / Referer / X-Requested-With）
@@ -269,12 +323,43 @@ MonthContext (共享月份状态)
 
 ---
 
+## 认证系统
+
+### 登录验证装饰器
+
+`lauth/decorators.py` 提供自定义 `@login_required` 装饰器：
+
+- AJAX 请求未登录：返回 401 JSON，包含 `need_login` 和 `redirect_url`
+- 普通请求未登录：重定向到登录页，保留 `next` 参数
+
+### 注册流程
+
+```
+输入邮箱 → 发送验证码 → 输入验证码 → 填写用户名/密码 → 注册成功并自动登录
+```
+
+### 找回密码流程
+
+```
+输入已注册邮箱 → 发送重置验证码 → 输入验证码 + 新密码 → 重置成功
+```
+
+### 会话管理
+
+- Session 有效期：5 天
+- 密码加密：Django 默认 PBKDF2 算法
+- 验证码有效期：5 分钟，一次性使用
+
+---
+
 ## 安全
 
 - [x] 密码通过 `.env` 环境变量管理，不提交 git
 - [x] CSRF Token 保护所有 POST 接口
 - [x] `.gitignore` 排除敏感文件和构建产物
 - [x] `DEBUG = True` 仅开发环境
+- [x] CORS 配置支持跨域凭证
+- [x] 登录验证保护管理操作（爬取/分析/预报抓取）
 
 ---
 

@@ -77,10 +77,10 @@ export default function Navbar() {
       {/* Left Group */}
       <div className="flex items-center gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-[26px] font-semibold text-[#1C1C1E] tracking-[-0.01em]">
-            🌿 都江堰天气可视化系统
+          <h1 className="text-[20px] sm:text-[26px] font-semibold text-[#1C1C1E] tracking-[-0.01em]">
+            🌿 都江堰天气可视化
           </h1>
-          <p className="text-xs text-[#8E8E93]">近12个月历史天气数据洞察</p>
+          <p className="text-[11px] sm:text-xs text-[#8E8E93]">近12个月历史天气数据洞察</p>
         </div>
         {/* Auth area */}
         {user ? (

@@ -339,7 +339,7 @@
       if (data.success) {
         AuthCharacters.showMsg('success', '注册成功！已自动登录，即将跳转...');
         btn.querySelector('.btn-text').textContent = '注册成功！';
-        setTimeout(function() { window.location.href = '/'; }, 1000);
+        setTimeout(function() { var p=new URLSearchParams(window.location.search); window.location.href=p.get('next')||'/'; }, 1000);
       } else {
         btn.querySelector('.btn-text').textContent = '注册';
         btn.disabled = false;

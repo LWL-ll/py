@@ -191,7 +191,10 @@
     .then(function(data) {
       if (data.success) {
         btn.querySelector('.btn-text').textContent = '登录成功！';
-        setTimeout(function() { window.location.href = '/'; }, 500);
+        setTimeout(function() {
+          var p = new URLSearchParams(window.location.search);
+          window.location.href = p.get('next') || '/';
+        }, 500);
       } else {
         btn.querySelector('.btn-text').textContent = '登录';
         btn.disabled = false;

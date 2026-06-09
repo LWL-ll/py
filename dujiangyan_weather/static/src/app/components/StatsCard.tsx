@@ -10,7 +10,7 @@ interface StatsCardProps {
 
 export default function StatsCard({ icon: Icon, label, value, accentColor, sparklineColor }: StatsCardProps) {
   return (
-    <div className="bg-white border border-[#E8E8E6] rounded-[20px] p-7 min-w-[280px] flex-1 flex flex-col gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover-lift">
+    <div className="bg-white border border-[#E8E8E6] rounded-[20px] p-5 sm:p-7 min-w-[160px] sm:min-w-[220px] flex-1 flex flex-col gap-3 sm:gap-4 shadow-[0_2px_12px_rgba(0,0,0,0.04),0_0_0_1px_rgba(0,0,0,0.02)] hover-lift">
       {/* Icon Circle */}
       <div
         className="w-10 h-10 rounded-full flex items-center justify-center"
@@ -23,7 +23,7 @@ export default function StatsCard({ icon: Icon, label, value, accentColor, spark
       <span className="text-xs font-medium text-[#8E8E93] uppercase tracking-wider">{label}</span>
 
       {/* Value */}
-      <span className="text-[40px] font-bold text-[#1C1C1E] tabular-nums leading-none">{value}</span>
+      <span className="text-[28px] sm:text-[40px] font-bold text-[#1C1C1E] tabular-nums leading-none">{value}</span>
 
       {/* Sparkline Area */}
       <div
