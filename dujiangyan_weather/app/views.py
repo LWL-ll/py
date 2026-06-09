@@ -366,6 +366,7 @@ def api_ai_chat(request):
 
 def api_today_weather(request):
     """获取今日天气详情（温度/湿度/风力/空气质量/体感）"""
+    import re
     from datetime import date
 
     today = date.today()
@@ -391,7 +392,6 @@ def api_today_weather(request):
         wind_dir = wind_raw
         wind_lvl = hist.wind_level or ''
         # 如果 wind_direction 包含数字（风力等级），尝试拆分
-        import re
         wind_match = re.match(r'^(.+?)(\d+级.*)?$', wind_raw)
         if wind_match:
             wind_dir = wind_match.group(1).strip()
