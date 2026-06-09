@@ -175,11 +175,79 @@ export default function InsightAndTable() {
         )}
       </div>
 
-      {/* Right Card - Weather Table（固定高度+滚动） */}
-      <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] max-h-[420px] flex flex-col">
-        <div className="px-6 py-4 shrink-0">
-          <h3 className="text-lg font-semibold text-[#1C1C1E]">当月天气明细</h3>
+      {/* Right Card - Weather Table / Postcard */}
+      <PostcardOrTable loading={loading} rows={rows} total={total} page={page} pageSize={pageSize}
+        totalPages={totalPages} loadPage={loadPage} selectedMonth={selectedMonth} refreshKey={refreshKey} />
+    </div>
+  );
+}
+
+// ───── 右侧卡片：明信片 / 表格切换 ─────
+
+function PostcardOrTable({ loading, rows, total, page, pageSize, totalPages, loadPage, selectedMonth, refreshKey }: {
+  loading: boolean; rows: WeatherRow[]; total: number; page: number; pageSize: number;
+  totalPages: number; loadPage: (p: number) => void; selectedMonth: string; refreshKey: number;
+}) {
+  const [view, setView] = useState<'table' | 'postcard'>('table');
+  const [postcardText, setPostcardText] = useState('');
+  const [postcardLoading, setPostcardLoading] = useState(false);
+
+  useEffect(() => {
+    if (view === 'postcard' && !postcardText) {
+      setPostcardLoading(true);
+      fetch('/api/weather/ai-postcard/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month: selectedMonth }),
+      })
+        .then((r) => r.json())
+        .then((json) => {
+          if (json.code === 0) setPostcardText(json.data?.text || '');
+        })
+        .catch(() => {})
+        .finally(() => setPostcardLoading(false));
+    }
+  }, [view, selectedMonth, refreshKey]);
+
+  return (
+    <div className="flex-[2] bg-white border border-[#E8E8E6] rounded-[20px] overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] max-h-[420px] flex flex-col">
+      <div className="px-6 py-4 shrink-0 flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-[#1C1C1E]">
+          {view === 'table' ? '当月天气明细' : '天气明信片'}
+        </h3>
+        <div className="flex bg-[#FAFAF8] rounded-lg p-0.5">
+          {(['table', 'postcard'] as const).map((v) => (
+            <button key={v} onClick={() => setView(v)}
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                view === v ? 'bg-white text-[#4A6FA5] shadow-sm' : 'text-[#8E8E93] hover:text-[#4A6FA5]'
+              }`}>
+              {v === 'table' ? '表格' : '明信片'}
+            </button>
+          ))}
         </div>
+      </div>
+
+      {view === 'postcard' ? (
+        <div className="flex-1 flex items-center justify-center p-6">
+          {postcardLoading ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-[#8E8E93]" />
+              <span className="text-sm text-[#8E8E93]">AI 生成明信片...</span>
+            </div>
+          ) : postcardText ? (
+            <div className="bg-gradient-to-br from-[#4A6FA508] via-[#7FA3C108] to-[#81B29A08] border border-[#4A6FA520] rounded-2xl p-8 max-w-sm text-center">
+              <p className="text-xs text-[#8E8E93] mb-3 tracking-widest">POSTCARD FROM DUJIANGYAN</p>
+              <p className="text-lg text-[#4A4A4A] leading-relaxed italic">"{postcardText}"</p>
+              <div className="mt-4 pt-4 border-t border-[#4A6FA515]">
+                <p className="text-[11px] text-[#B0B0B0]">都江堰 · {selectedMonth}</p>
+              </div>
+            </div>
+          ) : (
+            <span className="text-sm text-[#8E8E93]">生成失败，请稍后再试</span>
+          )}
+        </div>
+      ) : (
+        <>
         <div className="overflow-auto flex-1">
           <table className="w-full">
             <thead className="sticky top-0 z-10">
@@ -239,7 +307,8 @@ export default function InsightAndTable() {
               className="w-6 h-6 rounded-full flex items-center justify-center text-[13px] text-[#8E8E93] hover:bg-[#FAFAF8] disabled:opacity-30">›</button>
           </div>
         )}
+        </>
+      )}
       </div>
-    </div>
   );
 }

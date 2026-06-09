@@ -32,6 +32,7 @@ urlpatterns = [
     path('api/weather/ai-advice/', views.api_ai_advice, name='api_ai_advice'),
     path('api/weather/ai-chat/', views.api_ai_chat, name='api_ai_chat'),
     path('api/weather/ai-diary/', views.api_ai_diary, name='api_ai_diary'),
+    path('api/weather/ai-postcard/', views.api_ai_postcard, name='api_ai_postcard'),
 
     # 今日天气详情
     path('api/weather/today/', views.api_today_weather, name='api_today_weather'),

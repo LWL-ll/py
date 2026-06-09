@@ -533,3 +533,32 @@ def api_ai_diary(request):
         return JsonResponse({'code': 0, 'data': {'diary': diary}})
     except Exception as e:
         return JsonResponse({'code': 500, 'message': str(e)})
+
+
+# ==================== AI 天气明信片 ====================
+
+@require_POST
+def api_ai_postcard(request):
+    """AI 生成天气明信片文案"""
+    try:
+        import json as json_module
+        body = json_module.loads(request.body)
+        month = body.get('month', '')
+
+        from app.ai_advisor import _build_weather_context, _call_ai
+
+        context = _build_weather_context(month)
+        prompt = f"""你是一个明信片文案写手。根据以下都江堰天气数据，写一段 40 字以内的明信片文案。
+要求：有诗意，像旅行明信片上的文字，温暖治愈，不提具体数字。
+
+天气数据：
+{context}"""
+
+        text = _call_ai([
+            {'role': 'system', 'content': '你是一个明信片文案写手，文字温暖有诗意，40字以内。'},
+            {'role': 'user', 'content': prompt},
+        ], temperature=0.9)
+
+        return JsonResponse({'code': 0, 'data': {'text': text}})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'message': str(e)})
