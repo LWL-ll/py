@@ -15,7 +15,7 @@ interface DayInfo {
 }
 
 function MiniWeatherIcon({ type, desc }: { type?: string; desc?: string }) {
-  const cls = 'w-4 h-4';
+  const cls = 'w-5 h-5';
   const d = desc || '';
   if (d.includes('雪') || type === 'snowy') return <CloudSnow className={`${cls} text-[#B8C5D6]`} />;
   if (d.includes('雨') || type === 'rainy') return <CloudRain className={`${cls} text-[#7FA3C1]`} />;
@@ -106,30 +106,30 @@ export default function CalendarView() {
                 return (
                 <div
                   key={di}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center p-0.5 transition-colors relative cursor-default ${
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center p-1.5 transition-colors relative cursor-default ${
                     !day.is_current_month
                       ? 'opacity-20'
                       : day.is_today
                       ? 'bg-[#4A6FA5] text-white font-medium'
                       : isHist
-                      ? 'bg-[#4A6FA510] border border-[#4A6FA530] hover:bg-[#4A6FA520]'
+                      ? 'bg-[#4A6FA508] border border-[#4A6FA525] hover:bg-[#4A6FA515]'
                       : isFc
-                      ? 'border-2 border-dashed border-[#8E8E9340] hover:bg-[#FAFAF8]'
+                      ? 'border-2 border-dashed border-[#8E8E9330] hover:bg-[#FAFAF8]'
                       : 'hover:bg-[#FAFAF8]'
                   }`}
                   onMouseEnter={(e) => {
                     if (day.is_current_month && day.weather_desc) {
                       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                      setTooltip({ day, x: rect.left + rect.width / 2, y: rect.top });
+                      setTooltip({ day, x: rect.left + rect.width / 2, y: rect.top - 10 });
                     }
                   }}
                   onMouseLeave={() => setTooltip(null)}
                 >
-                  <span className={`text-[10px] ${day.is_today ? 'font-bold' : ''}`}>{day.day}</span>
+                  <span className={`text-xs ${day.is_today ? 'font-bold' : ''}`}>{day.day}</span>
                   {day.is_current_month && day.weather_desc && (
                     <>
                       <MiniWeatherIcon type={day.weather_type} desc={day.weather_desc} />
-                      <span className={`text-[9px] leading-tight ${day.is_today ? 'text-white/80' : isFc ? 'text-[#B0B0B0]' : 'text-[#6E6E73]'}`}>
+                      <span className={`text-[11px] leading-tight font-medium ${day.is_today ? 'text-white/80' : isFc ? 'text-[#B0B0B0]' : 'text-[#4A4A4A]'}`}>
                         {day.max_temp != null ? `${Math.round(day.max_temp)}°` : ''}
                       </span>
                     </>
@@ -153,23 +153,27 @@ export default function CalendarView() {
         </span>
       </div>
 
-      {/* 悬浮提示 */}
+      {/* 悬浮提示——固定定位在视口上方 */}
       {tooltip && (
         <div
-          className="fixed z-50 bg-white border border-[#E8E8E6] rounded-xl px-3 py-2 shadow-lg pointer-events-none animate-fadeIn"
-          style={{ left: tooltip.x, top: tooltip.y, transform: 'translate(-50%, -100%)' }}
+          className="fixed left-0 top-0 z-[9999] pointer-events-none"
+          style={{
+            transform: `translate(${tooltip.x}px, ${tooltip.y}px) translate(-50%, -100%)`,
+          }}
         >
-          <p className="text-xs font-medium text-[#1C1C1E] mb-1">{tooltip.day.date}</p>
-          <div className="flex items-center gap-2">
-            <MiniWeatherIcon type={tooltip.day.weather_type} desc={tooltip.day.weather_desc} />
-            <span className="text-xs text-[#4A4A4A]">{tooltip.day.weather_desc}</span>
+          <div className="bg-white border border-[#E8E8E6] rounded-xl px-3 py-2 shadow-xl animate-fadeIn">
+            <p className="text-xs font-medium text-[#1C1C1E] mb-1">{tooltip.day.date}</p>
+            <div className="flex items-center gap-2">
+              <MiniWeatherIcon type={tooltip.day.weather_type} desc={tooltip.day.weather_desc} />
+              <span className="text-xs text-[#4A4A4A]">{tooltip.day.weather_desc}</span>
+            </div>
+            <p className="text-xs text-[#8E8E93] mt-1">
+              {tooltip.day.min_temp != null ? `${tooltip.day.min_temp}°C` : '?'} ~ {tooltip.day.max_temp != null ? `${tooltip.day.max_temp}°C` : '?'}
+            </p>
+            <p className="text-[10px] text-[#B0B0B0]">
+              {tooltip.day.source === 'history' ? '历史数据' : tooltip.day.source === 'forecast' ? '预报数据' : ''}
+            </p>
           </div>
-          <p className="text-xs text-[#8E8E93] mt-1">
-            {tooltip.day.min_temp != null ? `${tooltip.day.min_temp}°C` : '?'} ~ {tooltip.day.max_temp != null ? `${tooltip.day.max_temp}°C` : '?'}
-          </p>
-          <p className="text-[10px] text-[#B0B0B0]">
-            {tooltip.day.source === 'history' ? '历史数据' : tooltip.day.source === 'forecast' ? '预报数据' : ''}
-          </p>
         </div>
       )}
     </div>
