@@ -18,6 +18,7 @@
 | 爬虫 | requests + BeautifulSoup4 | - |
 | 数据处理 | pandas + numpy | - |
 | 用户认证 | Django 自定义 lauth | - |
+| AI 模型 | 小米 Mimo v2.5-pro | - |
 
 ---
 
@@ -278,8 +279,16 @@ App (AuthProvider → MonthProvider)
 │   ├── PrimaryCharts    ← 温度趋势（历史实线+预报虚线）+ 饼图（懒加载）
 │   ├── SecondaryCharts  ← 降雨柱图 + 气候雷达（懒加载）
 │   ├── HeatmapChart     ← 温度热力图（懒加载）
-│   ├── InsightAndTable  ← 5 标签建议 + 数据表格（懒加载）
-│   └── Footer
+│   ├── TodayWeather     ← 今日天气详情（温度/湿度/风力/降雨）
+├── ForecastRow      ← 8 天预报滚动卡片
+├── WeatherDiary     ← AI 天气日记
+├── PrimaryCharts    ← 温度趋势（历史实线+预报虚线）+ 饼图（懒加载）
+├── SecondaryCharts  ← 降雨柱图 + 气候雷达（懒加载）
+├── HeatmapChart     ← 温度热力图（懒加载）
+├── InsightAndTable  ← 5 标签建议 + 数据表格（懒加载）
+├── CalendarView     ← 天气月历（翻月联动 + CSS 悬浮提示）
+├── AIChat           ← 右下角 AI 问答助手
+└── Footer
 ```
 
 ### 数据流
@@ -352,7 +361,12 @@ MonthContext
 开发环境使用控制台后端（验证码打印到终端）：
 
 ```python
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.qq.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'your-email@qq.com'
+EMAIL_HOST_PASSWORD = 'your-smtp-auth-code'
 ```
 
 生产环境切换 SMTP（`settings.py` 中取消注释）：
@@ -365,6 +379,18 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'your-email@qq.com'
 EMAIL_HOST_PASSWORD = 'your-smtp-password'
 ```
+
+---
+
+## AI 智能模块
+
+| 功能 | 触发方式 | 说明 |
+|------|---------|------|
+| 天气问答助手 | 右下角浮动按钮 | 结合实时天气数据回答问题 |
+| AI 天气日记 | 自动生成 | 文学化天气叙事（可手动刷新） |
+| AI 建议引擎 | API 调用 | 5 维度（穿衣/出行/运动/健康/预警）|
+
+模型：小米 Mimo v2.5-pro，max_tokens 8000，禁止 emoji，Markdown 渲染。
 
 ---
 
