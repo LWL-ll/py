@@ -386,14 +386,25 @@ def api_today_weather(request):
     # 1. 尝试从历史数据获取今天的记录
     hist = WeatherData.objects.filter(date=today).first()
     if hist:
+        # 风向风力分开（原始字段把两者合并了，如"东南风1级"）
+        wind_raw = hist.wind_direction or ''
+        wind_dir = wind_raw
+        wind_lvl = hist.wind_level or ''
+        # 如果 wind_direction 包含数字（风力等级），尝试拆分
+        import re
+        wind_match = re.match(r'^(.+?)(\d+级.*)?$', wind_raw)
+        if wind_match:
+            wind_dir = wind_match.group(1).strip()
+            wind_lvl = wind_match.group(2) or wind_lvl
+
         result.update({
             'max_temp': hist.max_temp,
             'min_temp': hist.min_temp,
             'weather_desc': hist.weather_desc,
             'weather_type': hist.weather_type,
             'humidity': hist.humidity,
-            'wind_direction': hist.wind_direction,
-            'wind_level': hist.wind_level,
+            'wind_direction': wind_dir,
+            'wind_level': wind_lvl,
             'source': 'history',
         })
 
