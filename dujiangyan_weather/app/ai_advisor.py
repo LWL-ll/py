@@ -18,7 +18,7 @@ API_KEY = 'sk-cfrylw3t467fpab7x31wzia48jht5y0ch63sl0ex8145k4en'
 MODEL = 'mimo-v2.5-pro'
 
 
-def _call_ai(messages: list, max_tokens: int = 1000, temperature: float = 0.7) -> str:
+def _call_ai(messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
     """调用 AI API，返回文本回复"""
     try:
         resp = requests.post(
@@ -37,7 +37,12 @@ def _call_ai(messages: list, max_tokens: int = 1000, temperature: float = 0.7) -
         )
         resp.raise_for_status()
         data = resp.json()
-        return data['choices'][0]['message']['content'].strip()
+        msg = data['choices'][0]['message']
+        content = msg.get('content', '').strip()
+        # Mimo 推理模型：content 为空时用 reasoning_content 兜底
+        if not content:
+            content = msg.get('reasoning_content', '').strip()
+        return content
     except Exception as e:
         logger.error(f'AI 调用失败: {e}')
         return ''
@@ -135,7 +140,7 @@ def generate_ai_advice(month_str: str = None) -> dict:
         resp_text = _call_ai([
             {'role': 'system', 'content': '你是一个专业的生活顾问，输出严格的 JSON，不输出其他内容。'},
             {'role': 'user', 'content': prompt},
-        ], max_tokens=800, temperature=0.5)
+        ], max_tokens=2000, temperature=0.5)
 
         # 提取 JSON（可能在 ```json ... ``` 中）
         if '```json' in resp_text:

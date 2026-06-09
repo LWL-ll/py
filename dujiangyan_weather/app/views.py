@@ -450,7 +450,7 @@ def api_ai_diary(request):
         diary = _call_ai([
             {'role': 'system', 'content': '你是一个有文学素养的天气记录者，用温暖细腻的笔触记录天气。'},
             {'role': 'user', 'content': prompt},
-        ], max_tokens=300, temperature=0.8)
+        ], max_tokens=2000, temperature=0.8)
 
         return JsonResponse({'code': 0, 'data': {'diary': diary}})
     except Exception as e:
