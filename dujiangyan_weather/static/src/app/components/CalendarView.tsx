@@ -99,14 +99,21 @@ export default function CalendarView() {
           {/* Days grid */}
           {weeks.map((week, wi) => (
             <div key={wi} className="grid grid-cols-7 gap-0.5">
-              {week.map((day, di) => (
+              {week.map((day, di) => {
+                const isHist = day.source === 'history';
+                const isFc = day.source === 'forecast';
+                return (
                 <div
                   key={di}
                   className={`aspect-square rounded-lg flex flex-col items-center justify-center p-0.5 transition-colors ${
                     !day.is_current_month
                       ? 'opacity-20'
                       : day.is_today
-                      ? 'bg-[#4A6FA5] text-white'
+                      ? 'bg-[#4A6FA5] text-white font-medium'
+                      : isHist
+                      ? 'bg-[#4A6FA510] border border-[#4A6FA530]'
+                      : isFc
+                      ? 'border-2 border-dashed border-[#8E8E9340]'
                       : 'hover:bg-[#FAFAF8]'
                   }`}
                   title={day.weather_desc ? `${day.weather_desc} ${day.min_temp ?? '?'}~${day.max_temp ?? '?'}°C` : ''}
@@ -115,13 +122,13 @@ export default function CalendarView() {
                   {day.is_current_month && day.weather_desc && (
                     <>
                       <MiniWeatherIcon type={day.weather_type} desc={day.weather_desc} />
-                      <span className={`text-[9px] leading-tight ${day.is_today ? 'text-white/80' : 'text-[#8E8E93]'}`}>
+                      <span className={`text-[9px] leading-tight ${day.is_today ? 'text-white/80' : isFc ? 'text-[#B0B0B0]' : 'text-[#6E6E73]'}`}>
                         {day.max_temp != null ? `${Math.round(day.max_temp)}°` : ''}
                       </span>
                     </>
                   )}
                 </div>
-              ))}
+              )})}
             </div>
           ))}
         </div>
@@ -129,8 +136,13 @@ export default function CalendarView() {
 
       {/* Legend */}
       <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-[#E8E8E6]">
-        <span className="text-[10px] text-[#8E8E93]">
-          实心 = 历史数据，空心 = 预报
+        <span className="flex items-center gap-1.5 text-[10px] text-[#6E6E73]">
+          <span className="w-3 h-3 rounded bg-[#4A6FA510] border border-[#4A6FA530] inline-block"></span>
+          历史数据
+        </span>
+        <span className="flex items-center gap-1.5 text-[10px] text-[#8E8E93]">
+          <span className="w-3 h-3 rounded border-2 border-dashed border-[#8E8E9340] inline-block"></span>
+          预报数据
         </span>
       </div>
     </div>
