@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, Droplets, Wind, Eye } from 'lucide-react';
+import { Loader2, Droplets, Wind, CloudRain } from 'lucide-react';
 import { useMonth } from '../context/MonthContext';
 
 interface TodayData {
@@ -10,7 +10,7 @@ interface TodayData {
   humidity: number | null;
   wind_direction: string;
   wind_level: string;
-  source: string;
+  rainy_days?: number;
 }
 
 export default function TodayWeather() {
@@ -79,11 +79,11 @@ export default function TodayWeather() {
         </div>
 
         <div className="bg-[#FAFAF8] rounded-xl p-3 flex items-center gap-2">
-          <Eye className="w-5 h-5 text-[#81B29A] shrink-0" />
+          <CloudRain className="w-5 h-5 text-[#4A6FA5] shrink-0" />
           <div className="min-w-0">
-            <p className="text-[10px] text-[#8E8E93]">数据来源</p>
+            <p className="text-[10px] text-[#8E8E93]">本月降雨</p>
             <p className="text-sm font-semibold text-[#1C1C1E]">
-              {data.source === 'history' ? '实测' : data.source === 'forecast' ? '预报' : '-'}
+              {data.rainy_days != null ? `${data.rainy_days} 天` : '-'}
             </p>
           </div>
         </div>

@@ -420,11 +420,16 @@ def api_today_weather(request):
         if not result['source'] or result['source'] == 'none':
             result['source'] = 'forecast'
 
-    # 3. 当月气候评分（空气质量和舒适度）
+    # 3. 若无今日湿度，取最近一条历史记录
+    if result['humidity'] is None:
+        latest_hist = WeatherData.objects.order_by('-date').first()
+        if latest_hist:
+            result['humidity'] = latest_hist.humidity
+
+    # 4. 当月降雨天数
     stats = MonthlyStats.objects.filter(year=today.year, month=today.month).first()
     if stats:
-        result['air_quality_score'] = stats.air_quality_score
-        result['temp_comfort_score'] = stats.temp_comfort_score
+        result['rainy_days'] = stats.rainy_days
 
     return JsonResponse({'code': 0, 'data': result})
 
