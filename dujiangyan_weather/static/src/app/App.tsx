@@ -5,6 +5,8 @@ import { MonthProvider } from './context/MonthContext';
 import Navbar from './components/Navbar';
 import StatsGrid from './components/StatsGrid';
 import ForecastRow from './components/ForecastRow';
+import WeatherDiary from './components/WeatherDiary';
+import CalendarView from './components/CalendarView';
 import Footer from './components/Footer';
 import AIChat from './components/AIChat';
 
@@ -32,6 +34,7 @@ function Dashboard() {
           <div className="animate-fadeInUp" style={{ animationDelay: '0s' }}><Navbar /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.1s' }}><StatsGrid /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.15s' }}><ForecastRow /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.18s' }}><WeatherDiary /></div>
           <div className="animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
             <Suspense fallback={<ChartSkeleton label="加载图表..." />}><PrimaryCharts /></Suspense>
           </div>
@@ -44,7 +47,8 @@ function Dashboard() {
           <div className="animate-fadeInUp" style={{ animationDelay: '0.35s' }}>
             <Suspense fallback={<ChartSkeleton height="h-[400px]" label="加载数据表..." />}><InsightAndTable /></Suspense>
           </div>
-          <div className="animate-fadeInUp" style={{ animationDelay: '0.4s' }}><Footer /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.38s' }}><CalendarView /></div>
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.42s' }}><Footer /></div>
         </div>
         <AIChat />
       </div>

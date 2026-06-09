@@ -360,3 +360,98 @@ def api_ai_chat(request):
         return JsonResponse({'code': 0, 'data': {'answer': answer}})
     except Exception as e:
         return JsonResponse({'code': 500, 'message': str(e)})
+
+
+# ==================== 天气月历 ====================
+
+def api_weather_calendar(request):
+    """获取指定月份的日历数据（每天一格）"""
+    year = request.GET.get('year')
+    month = request.GET.get('month')
+    if not year or not month:
+        return JsonResponse({'code': 1, 'message': '请提供 year 和 month 参数'})
+
+    from datetime import date, timedelta
+    import calendar
+
+    y, m = int(year), int(month)
+
+    # 当月所有天气数据
+    data_map = {}
+    for w in WeatherData.objects.filter(date__year=y, date__month=m):
+        data_map[w.date.day] = {
+            'max_temp': w.max_temp,
+            'min_temp': w.min_temp,
+            'weather_desc': w.weather_desc,
+            'weather_type': w.weather_type,
+        }
+
+    # 当月预报数据
+    fc_map = {}
+    for f in ForecastData.objects.filter(date__year=y, date__month=m):
+        fc_map[f.date.day] = {
+            'max_temp': float(f.day_temp) if f.day_temp else None,
+            'min_temp': float(f.night_temp) if f.night_temp else None,
+            'weather_desc': f.weather_desc,
+        }
+
+    # 构建日历网格
+    cal = calendar.Calendar(firstweekday=0)  # 周一开头
+    weeks = []
+    for week in cal.monthdatescalendar(y, m):
+        week_data = []
+        for d in week:
+            day_info = {
+                'date': d.isoformat(),
+                'day': d.day,
+                'is_current_month': d.month == m,
+                'is_today': d == date.today(),
+            }
+            if d.month == m:
+                hist = data_map.get(d.day)
+                fc = fc_map.get(d.day)
+                if hist:
+                    day_info['max_temp'] = hist['max_temp']
+                    day_info['min_temp'] = hist['min_temp']
+                    day_info['weather_desc'] = hist['weather_desc']
+                    day_info['weather_type'] = hist['weather_type']
+                    day_info['source'] = 'history'
+                elif fc:
+                    day_info['max_temp'] = fc['max_temp']
+                    day_info['min_temp'] = fc['min_temp']
+                    day_info['weather_desc'] = fc['weather_desc']
+                    day_info['weather_type'] = ''
+                    day_info['source'] = 'forecast'
+            week_data.append(day_info)
+        weeks.append(week_data)
+
+    return JsonResponse({'code': 0, 'data': {'weeks': weeks, 'year': y, 'month': m}})
+
+
+# ==================== AI 天气日记 ====================
+
+@require_POST
+def api_ai_diary(request):
+    """AI 生成每日天气叙事日记"""
+    try:
+        from datetime import date
+        from app.ai_advisor import _build_weather_context, _call_ai
+
+        context = _build_weather_context()
+        prompt = f"""根据以下天气数据，写一段 100 字左右的天气日记。要求：
+- 以"今天是{date.today().strftime('%Y年%m月%d日')}"开头
+- 像讲故事一样描述最近的天气变化
+- 语气温暖，有文学感
+- 结合具体数字（温度、降雨天数等）
+- 提到都江堰的气候特点
+
+{context}"""
+
+        diary = _call_ai([
+            {'role': 'system', 'content': '你是一个有文学素养的天气记录者，用温暖细腻的笔触记录天气。'},
+            {'role': 'user', 'content': prompt},
+        ], max_tokens=300, temperature=0.8)
+
+        return JsonResponse({'code': 0, 'data': {'diary': diary}})
+    except Exception as e:
+        return JsonResponse({'code': 500, 'message': str(e)})
