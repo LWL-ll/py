@@ -135,11 +135,45 @@ export default function InsightAndTable() {
               <span className="text-sm text-[#8E8E93]">AI 生成明信片...</span>
             </div>
           ) : postcardText ? (
-            <div className="bg-gradient-to-br from-[#4A6FA508] via-[#7FA3C108] to-[#81B29A08] border border-[#4A6FA520] rounded-2xl p-8 max-w-sm text-center">
-              <p className="text-xs text-[#8E8E93] mb-3 tracking-widest">POSTCARD FROM DUJIANGYAN</p>
-              <p className="text-lg text-[#4A4A4A] leading-relaxed italic">"{postcardText}"</p>
-              <div className="mt-4 pt-4 border-t border-[#4A6FA515]">
-                <p className="text-[11px] text-[#B0B0B0]">都江堰 · {selectedMonth}</p>
+            <div className="relative w-full max-w-sm rounded-2xl overflow-hidden shadow-lg" style={{ minHeight: 280 }}>
+              {/* 油画风景背景 */}
+              <div className="absolute inset-0" style={{
+                background: `linear-gradient(180deg,
+                  #7BA4CC 0%, #8DB5D6 15%, #C4D9E8 25%, #D4A37320 30%,
+                  #81B29A40 35%, #5A8F6A60 45%, #4A7A5A80 55%,
+                  #6A8A7060 65%, #7FA3C140 75%, #C4C8D030 100%)`,
+              }}></div>
+              {/* 油画笔触纹理 */}
+              <div className="absolute inset-0 opacity-30" style={{
+                backgroundImage: `radial-gradient(circle at 30% 40%, #D4A37310 0%, transparent 50%),
+                  radial-gradient(circle at 70% 30%, #ffffff20 0%, transparent 40%),
+                  radial-gradient(circle at 50% 70%, #4A6FA510 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, #3D5A8A15 0%, transparent 50%),
+                  radial-gradient(circle at 80% 60%, #81B29A12 0%, transparent 40%)`,
+              }}></div>
+              {/* 远山轮廓 */}
+              <div className="absolute bottom-0 left-0 right-0 h-[45%]" style={{
+                background: `linear-gradient(180deg, transparent 0%, #5A8F6A30 10%, #4A7A5A50 30%, #3D5A3D70 60%, #2D4A2D90 100%)`,
+                clipPath: 'polygon(0 60%, 15% 35%, 30% 50%, 45% 25%, 60% 45%, 75% 30%, 90% 48%, 100% 40%, 100% 100%, 0 100%)',
+              }}></div>
+              {/* 前景山丘 */}
+              <div className="absolute bottom-0 left-0 right-0 h-[25%]" style={{
+                background: `linear-gradient(180deg, #3D6A3D60 0%, #2D4A2D90 100%)`,
+                clipPath: 'polygon(0 50%, 20% 30%, 40% 45%, 60% 20%, 80% 35%, 100% 25%, 100% 100%, 0 100%)',
+              }}></div>
+              {/* 江水反光 */}
+              <div className="absolute bottom-[8%] left-[15%] right-[15%] h-[6%]" style={{
+                background: 'linear-gradient(90deg, transparent, #7FA3C140, #C4D9E860, #7FA3C140, transparent)',
+                borderRadius: '50%',
+              }}></div>
+
+              {/* 文字覆盖层 */}
+              <div className="relative z-10 flex flex-col items-center justify-center h-full p-8 text-center">
+                <p className="text-[10px] text-white/60 mb-3 tracking-[0.2em] uppercase">Postcard from Dujiangyan</p>
+                <p className="text-base text-white leading-relaxed italic drop-shadow-lg">"{postcardText}"</p>
+                <div className="mt-auto pt-4">
+                  <p className="text-[11px] text-white/50">都江堰 · {selectedMonth}</p>
+                </div>
               </div>
             </div>
           ) : (
