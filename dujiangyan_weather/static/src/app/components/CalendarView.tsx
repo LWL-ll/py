@@ -15,7 +15,7 @@ interface DayInfo {
 }
 
 function MiniWeatherIcon({ type, desc }: { type?: string; desc?: string }) {
-  const cls = 'w-5 h-5';
+  const cls = 'w-6 h-6';
   const d = desc || '';
   if (d.includes('雪') || type === 'snowy') return <CloudSnow className={`${cls} text-[#B8C5D6]`} />;
   if (d.includes('雨') || type === 'rainy') return <CloudRain className={`${cls} text-[#7FA3C1]`} />;
@@ -93,20 +93,20 @@ export default function CalendarView() {
           {/* Weekday headers */}
           <div className="grid grid-cols-7 mb-1">
             {WEEKDAYS.map((d) => (
-              <div key={d} className="text-center text-[11px] font-medium text-[#8E8E93] py-1">{d}</div>
+              <div key={d} className="text-center text-xs font-medium text-[#8E8E93] py-1">{d}</div>
             ))}
           </div>
 
           {/* Days grid */}
           {weeks.map((week, wi) => (
-            <div key={wi} className="grid grid-cols-7 gap-0.5">
+            <div key={wi} className="grid grid-cols-7 gap-1">
               {week.map((day, di) => {
                 const isHist = day.source === 'history';
                 const isFc = day.source === 'forecast';
                 return (
                 <div
                   key={di}
-                  className={`aspect-square rounded-lg flex flex-col items-center justify-center p-1.5 transition-colors relative cursor-default ${
+                  className={`aspect-square rounded-lg flex flex-col items-center justify-center gap-0.5 p-2 transition-colors relative cursor-default ${
                     !day.is_current_month
                       ? 'opacity-20'
                       : day.is_today
@@ -125,11 +125,11 @@ export default function CalendarView() {
                   }}
                   onMouseLeave={() => setTooltip(null)}
                 >
-                  <span className={`text-xs ${day.is_today ? 'font-bold' : ''}`}>{day.day}</span>
+                  <span className={`text-sm ${day.is_today ? 'font-bold' : ''}`}>{day.day}</span>
                   {day.is_current_month && day.weather_desc && (
                     <>
                       <MiniWeatherIcon type={day.weather_type} desc={day.weather_desc} />
-                      <span className={`text-[11px] leading-tight font-medium ${day.is_today ? 'text-white/80' : isFc ? 'text-[#B0B0B0]' : 'text-[#4A4A4A]'}`}>
+                      <span className={`text-xs leading-tight font-medium ${day.is_today ? 'text-white/80' : isFc ? 'text-[#B0B0B0]' : 'text-[#4A4A4A]'}`}>
                         {day.max_temp != null ? `${Math.round(day.max_temp)}°` : ''}
                       </span>
                     </>
