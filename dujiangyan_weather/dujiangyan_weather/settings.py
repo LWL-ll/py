@@ -92,7 +92,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': '都江堰',
         'USER': '都江堰',
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'yrDKZ2TiPiMGfAeD'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
         'HOST': '47.109.137.204',
         'PORT': '3306',
         'OPTIONS': {

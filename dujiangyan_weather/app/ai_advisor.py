@@ -4,6 +4,7 @@ AI 智能模块：天气建议引擎 + 问答助手
 使用小米 Mimo v2.5-pro API（兼容 OpenAI 格式）
 """
 
+import os
 import requests
 import json
 import logging
@@ -14,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # API 配置
 API_URL = 'https://api.xiaomimimo.com/v1/chat/completions'
-API_KEY = 'sk-cfrylw3t467fpab7x31wzia48jht5y0ch63sl0ex8145k4en'
+API_KEY = os.environ.get('MIMO_API_KEY', '')
 MODEL = 'mimo-v2.5-pro'
 
 

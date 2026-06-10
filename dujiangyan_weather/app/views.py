@@ -323,6 +323,7 @@ def api_forecast_fetch(request):
 
 # ==================== AI 智能模块 ====================
 
+@login_required
 @require_POST
 def api_ai_advice(request):
     """AI 生成智能生活建议"""
@@ -342,6 +343,7 @@ def api_ai_advice(request):
         return JsonResponse({'code': 500, 'message': str(e)})
 
 
+@login_required
 @require_POST
 def api_ai_chat(request):
     """AI 天气问答（返回流式或普通文本）"""
@@ -508,6 +510,7 @@ def api_weather_calendar(request):
 
 # ==================== AI 天气日记 ====================
 
+@login_required
 @require_POST
 def api_ai_diary(request):
     """AI 生成每日天气叙事日记"""
@@ -537,6 +540,7 @@ def api_ai_diary(request):
 
 # ==================== AI 天气明信片 ====================
 
+@login_required
 @require_POST
 def api_ai_postcard(request):
     """AI 生成天气明信片文案"""
