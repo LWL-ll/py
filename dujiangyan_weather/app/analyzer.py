@@ -9,6 +9,7 @@ import numpy as np
 import logging
 from django.db.models import Avg, Max, Min, Count, Q
 from app.models import WeatherData, MonthlyStats, ClothingAdvice, ForecastData
+from app.ai_advisor import generate_ai_advice
 
 logger = logging.getLogger(__name__)
 
@@ -72,8 +73,28 @@ def generate_monthly_stats(year: int = None, month: int = None):
             }
         )
 
-        # 同步生成穿衣建议
-        generate_comprehensive_advice(y, m)
+        # 优先用 AI 生成智能建议，失败则回退规则引擎
+        try:
+            ai_result = generate_ai_advice(f"{y}-{m:02d}")
+            if ai_result:
+                # AI 成功，直接写入数据库
+                all_tags = []
+                for cat in ai_result.values():
+                    all_tags.extend(cat.get('tags', []))
+                ClothingAdvice.objects.update_or_create(
+                    month=f"{y}-{m:02d}",
+                    defaults={
+                        'advice_text': ' '.join(c.get('advice', '') for c in ai_result.values()),
+                        'tags': list(set(all_tags)),
+                        'advice_categories': ai_result,
+                    }
+                )
+                logger.info(f"{y}-{m:02d} AI 建议已生成")
+            else:
+                raise Exception('AI 返回空')
+        except Exception as e:
+            logger.warning(f"AI 建议失败({e})，回退规则引擎")
+            generate_comprehensive_advice(y, m)
 
     logger.info("月度统计与气候评分生成完成")
 
