@@ -1,7 +1,7 @@
 """
 AI 智能模块：天气建议引擎 + 问答助手
 
-使用小米 Mimo v2.5-pro API（兼容 OpenAI 格式）
+使用 DeepSeek v4-pro API（兼容 OpenAI 格式）
 """
 
 import os
@@ -14,9 +14,9 @@ from django.db.models import Avg, Max, Min
 logger = logging.getLogger(__name__)
 
 # API 配置
-API_URL = 'https://api.xiaomimimo.com/v1/chat/completions'
-API_KEY = os.environ.get('MIMO_API_KEY', '')
-MODEL = 'mimo-v2.5-pro'
+API_URL = 'https://api.deepseek.com/v1/chat/completions'
+API_KEY = os.environ.get('DEEPSEEK_API_KEY', '')
+MODEL = 'deepseek-v4-pro'
 
 
 def _call_ai(messages: list, max_tokens: int = 8000, temperature: float = 0.7) -> str:
